@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="CidrRootsConfiguration">
+    <excludeRoots>
+      <file path="$PROJECT_DIR$/.repo" />
+      <file path="$PROJECT_DIR$/IMAGE" />
+      <file path="$PROJECT_DIR$/RKDocs" />
+      <file path="$PROJECT_DIR$/RKTools" />
+      <file path="$PROJECT_DIR$/build" />
+      <file path="$PROJECT_DIR$/common" />
+      <file path="$PROJECT_DIR$/cts" />
+      <file path="$PROJECT_DIR$/developers" />
+      <file path="$PROJECT_DIR$/development" />
+      <file path="$PROJECT_DIR$/device" />
+      <file path="$PROJECT_DIR$/docs" />
+      <file path="$PROJECT_DIR$/external" />
+      <file path="$PROJECT_DIR$/gen" />
+      <file path="$PROJECT_DIR$/hardware/akm" />
+      <file path="$PROJECT_DIR$/hardware/broadcom" />
+      <file path="$PROJECT_DIR$/hardware/bsp" />
+      <file path="$PROJECT_DIR$/hardware/google" />
+      <file path="$PROJECT_DIR$/hardware/intel" />
+      <file path="$PROJECT_DIR$/hardware/invensense" />
+      <file path="$PROJECT_DIR$/hardware/marvell" />
+      <file path="$PROJECT_DIR$/hardware/mtk" />
+      <file path="$PROJECT_DIR$/hardware/qcom" />
+      <file path="$PROJECT_DIR$/hardware/realtek" />
+      <file path="$PROJECT_DIR$/hardware/ti" />
+      <file path="$PROJECT_DIR$/hardware/wifi" />
+      <file path="$PROJECT_DIR$/kernel" />
+      <file path="$PROJECT_DIR$/libcore/luni" />
+      <file path="$PROJECT_DIR$/libcore/ojluni" />
+      <file path="$PROJECT_DIR$/native_test" />
+      <file path="$PROJECT_DIR$/ndk" />
+      <file path="$PROJECT_DIR$/out" />
+      <file path="$PROJECT_DIR$/packages" />
+      <file path="$PROJECT_DIR$/pdk" />
+      <file path="$PROJECT_DIR$/platform_testing" />
+      <file path="$PROJECT_DIR$/prebuilts" />
+      <file path="$PROJECT_DIR$/projectFilesBackup" />
+      <file path="$PROJECT_DIR$/rkst" />
+      <file path="$PROJECT_DIR$/rockdev" />
+      <file path="$PROJECT_DIR$/sdk" />
+      <file path="$PROJECT_DIR$/test" />
+      <file path="$PROJECT_DIR$/toolchain" />
+      <file path="$PROJECT_DIR$/tools" />
+      <file path="$PROJECT_DIR$/u-boot" />
+      <file path="$PROJECT_DIR$/uboot" />
+      <file path="$PROJECT_DIR$/vendor" />
+    </excludeRoots>
+  </component>
+  <component name="JavaScriptSettings">
+    <option name="languageLevel" value="ES6" />
+  </component>
+</project>
