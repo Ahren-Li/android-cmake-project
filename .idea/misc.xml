@@ -9,7 +9,9 @@
       <file path="$PROJECT_DIR$/RKTools" />
       <file path="$PROJECT_DIR$/build" />
       <file path="$PROJECT_DIR$/common" />
+      <file path="$PROJECT_DIR$/compatibility" />
       <file path="$PROJECT_DIR$/cts" />
+      <file path="$PROJECT_DIR$/dalvik" />
       <file path="$PROJECT_DIR$/developers" />
       <file path="$PROJECT_DIR$/development" />
       <file path="$PROJECT_DIR$/device" />
@@ -29,6 +31,7 @@
       <file path="$PROJECT_DIR$/hardware/ti" />
       <file path="$PROJECT_DIR$/hardware/wifi" />
       <file path="$PROJECT_DIR$/kernel" />
+      <file path="$PROJECT_DIR$/libcore" />
       <file path="$PROJECT_DIR$/libcore/luni" />
       <file path="$PROJECT_DIR$/libcore/ojluni" />
       <file path="$PROJECT_DIR$/native_test" />
@@ -39,6 +42,8 @@
       <file path="$PROJECT_DIR$/platform_testing" />
       <file path="$PROJECT_DIR$/prebuilts" />
       <file path="$PROJECT_DIR$/projectFilesBackup" />
+      <file path="$PROJECT_DIR$/release" />
+      <file path="$PROJECT_DIR$/rkbin" />
       <file path="$PROJECT_DIR$/rkst" />
       <file path="$PROJECT_DIR$/rockdev" />
       <file path="$PROJECT_DIR$/sdk" />
