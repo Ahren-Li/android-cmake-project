@@ -1,32 +1,20 @@
 cmake_minimum_required(VERSION 3.6.0-rc2)
 
 SET(ANDROID_DEBUG OFF)
-SET(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-#list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Cmake")
-#include(Cmake/source_clang.cmake)
-#project(Android)
-#return()
 
-message("PROJECT_DIR:${PROJECT_DIR}")
+SET(PROJECT_DIR "${CMAKE_HOME_DIRECTORY}")
+include(${PROJECT_DIR}/env_android.cmake)
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_DIR}/Cmake")
 
-#set(ANDROID_NDK /data/lili/AndroidNDK/android-ndk-r16b)
-#set(ANDROID_ABI "armeabi-v7a with NEON")
-set(ANDROID_ABI "arm64-v8a")
-set(ANDROID_TOOLCHAIN_NAME "clang")
-set(ANDROID_STL c++_static)
-#set(ANDROID_PLATFORM android-25)
-#set(ANDROID_NATIVE_API_LEVEL 25)
+set(CMAKE_TOOLCHAIN_FILE ${PROJECT_DIR}/android.toolchain.cmake)
 
-set(CMAKE_TOOLCHAIN_FILE Cmake/android.toolchain.cmake)
-
-#set(CMAKE_TOOLCHAIN_FILE /data/lili/AndroidNDK/android-ndk-r16b/build/cmake/android.toolchain.cmake)
-ENABLE_LANGUAGE(ASM)
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Cmake")
+project(Android)
 
 if (ANDROID)
-    message(STATUS "Hello from Android build!")
+    message("Hello from Android build!")
 endif()
+
+ENABLE_LANGUAGE(ASM)
 
 if (ANDROID_DEBUG)
     message("CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES:${CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES}")
@@ -55,6 +43,11 @@ if (ANDROID_DEBUG)
     message(CMAKE_MODULE_LINKER_FLAGS ${CMAKE_MODULE_LINKER_FLAGS})
     message(CMAKE_EXE_LINKER_FLAGS    ${CMAKE_EXE_LINKER_FLAGS})
 endif()
+include_directories(
+        ${PROJECT_DIR}/libnativehelper/include/nativehelper
+        ${PROJECT_DIR}/external/libcxx/include
+        ${PROJECT_DIR}/external/libcxxabi/include
+)
 #system
 include_directories( SYSTEM
         "${PROJECT_DIR}/system/core/include"
@@ -66,39 +59,15 @@ include_directories( SYSTEM
         "${PROJECT_DIR}/frameworks/native/opengl/include"
         "${PROJECT_DIR}/frameworks/av/include"
         "${PROJECT_DIR}/frameworks/base/include"
-        "${PROJECT_DIR}/out/target/product/rk3399_box/obj/include"
-        "${PROJECT_DIR}/bionic/libc/arch-arm/include"
+        "${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/obj/include"
+        "${PROJECT_DIR}/bionic/libc/arch-${ANDROID_SYSROOT_ABI}/include"
         "${PROJECT_DIR}/bionic/libc/include"
         "${PROJECT_DIR}/bionic/libc/kernel/uapi"
         "${PROJECT_DIR}/bionic/libc/kernel/common"
-        "${PROJECT_DIR}/bionic/libc/kernel/uapi/asm-arm"
+        "${PROJECT_DIR}/bionic/libc/kernel/uapi/asm-${ANDROID_SYSROOT_ABI}"
         "${PROJECT_DIR}/bionic/libm/include"
-        "${PROJECT_DIR}/bionic/libm/include/arm"
+        "${PROJECT_DIR}/bionic/libm/include/${ANDROID_SYSROOT_ABI}"
         )
-
-project(Android)
-
-UNSET(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES)
-UNSET(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
-
-#SET(CMAKE_C_FLAGS
-#        "${CMAKE_C_FLAGS}
-#        -D_LIBC=1
-#        --target=armv7-none-linux-androideabi
-#        -DANDROID
-#        -std=gnu99
-#        ")
-#
-#SET(CMAKE_CXX_FLAGS
-#        "${CMAKE_CXX_FLAGS}
-#        --target=armv7-none-linux-androideabi
-#        -DANDROID
-#        ")
-
-
-#set(CMAKE_C_STANDARD   99)
-#set(CMAKE_ASM_STANDARD 99)
-#set(CMAKE_CXX_STANDARD 14)
 
 include(libcutils)
 include(libutil)
@@ -112,6 +81,6 @@ include(SurfaceFlinger)
 #include(init)
 include(recovery)
 
-if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/lili-test)
-    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lili-test)
+if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/android-test/CMakeLists.txt)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/android-test)
 endif()

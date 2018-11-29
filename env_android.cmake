@@ -1,0 +1,10 @@
+
+set(ANDROID_LUNCH rk3399_box)
+set(ANDROID_TARGET_ARCH arm64)
+#set(ANDROID_ABI "armeabi-v7a")
+#set(ANDROID_ABI "armeabi-v7a with NEON")
+set(ANDROID_ABI "arm64-v8a")
+set(ANDROID_TOOLCHAIN_NAME "clang")
+set(ANDROID_STL c++_static)
+#set(ANDROID_PLATFORM android-25)
+#set(ANDROID_NATIVE_API_LEVEL 25)

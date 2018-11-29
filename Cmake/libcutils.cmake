@@ -60,4 +60,4 @@ target_compile_options(libcutils PUBLIC $<$<COMPILE_LANGUAGE:C>:-std=gnu90>)
 target_compile_options(libcutils PUBLIC $<$<COMPILE_LANGUAGE:C>:-Werror -Wall -Wextra>)
 
 target_link_libraries(libcutils
-        ${PROJECT_DIR}/out/target/product/q201/obj/STATIC_LIBRARIES/liblog_intermediates/liblog.a)
+        ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/obj/STATIC_LIBRARIES/liblog_intermediates/liblog.a)

@@ -41,8 +41,9 @@ cmake_minimum_required(VERSION 3.6.0)
 
 # Inhibit all of CMake's own NDK handling code.
 set(CMAKE_SYSTEM_VERSION 1)
-#SET(PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}/..")
 
+file(TO_CMAKE_PATH "${PROJECT_DIR}" PROJECT_DIR)
+#message("PROJECT_DIR:${PROJECT_DIR}")
 # CMake invokes the toolchain file twice during the first build, but only once
 # during subsequent rebuilds. This was causing the various flags to be added
 # twice on the first build, and on a rebuild ninja would see only one set of the
@@ -191,6 +192,9 @@ endif()
 
 # Export configurable variables for the try_compile() command.
 set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
+  PROJECT_DIR
+  ANDROID_LUNCH
+  ANDROID_TARGET_ARCH
   ANDROID_TOOLCHAIN
   ANDROID_ABI
   ANDROID_PLATFORM
@@ -203,7 +207,8 @@ set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
   ANDROID_DISABLE_NO_EXECUTE
   ANDROID_DISABLE_RELRO
   ANDROID_DISABLE_FORMAT_STRING_CHECKS
-  ANDROID_CCACHE)
+  ANDROID_CCACHE
+        )
 
 # Standard cross-compiling stuff.
 set(ANDROID TRUE)
@@ -252,7 +257,8 @@ elseif(ANDROID_ABI STREQUAL arm64-v8a)
   set(CMAKE_SYSTEM_PROCESSOR aarch64)
   set(ANDROID_TOOLCHAIN_NAME aarch64-linux-android)
   set(ANDROID_TOOLCHAIN_ROOT ${ANDROID_TOOLCHAIN_NAME})
-  set(ANDROID_LLVM_TRIPLE aarch64-none-linux-android)
+#  set(ANDROID_LLVM_TRIPLE aarch64-none-linux-android)
+  set(ANDROID_LLVM_TRIPLE aarch64-linux-android)
   set(ANDROID_HEADER_TRIPLE aarch64-linux-android)
 elseif(ANDROID_ABI STREQUAL x86)
   set(ANDROID_SYSROOT_ABI x86)
@@ -290,12 +296,22 @@ else()
   message(FATAL_ERROR "Invalid Android ABI: ${ANDROID_ABI}.")
 endif()
 
+set(ANDROID_OBJ_DIR obj)
+if( ANDROID_TARGET_ARCH STREQUAL arm  AND ANDROID_SYSROOT_ABI STREQUAL arm64 )
+  message(FATAL_ERROR "android ANDROID_TARGET_ARCH=arm, but ANDROID_ABI=arm64-v8a")
+endif()
+
+if( ANDROID_TARGET_ARCH STREQUAL arm64  AND ANDROID_SYSROOT_ABI STREQUAL arm )
+  set(ANDROID_OBJ_DIR obj_arm)
+endif()
+
 set(ANDROID_COMPILER_FLAGS)
 set(ANDROID_COMPILER_FLAGS_CXX)
 set(ANDROID_COMPILER_FLAGS_DEBUG)
 set(ANDROID_COMPILER_FLAGS_RELEASE)
 set(ANDROID_LINKER_FLAGS)
 set(ANDROID_LINKER_FLAGS_EXE)
+SET(ANDROID_LINKER_FLAGS_SHARD)
 
 # Don't re-export libgcc symbols in every binary.
 list(APPEND ANDROID_LINKER_FLAGS -Wl,--exclude-libs,libgcc.a)
@@ -346,13 +362,13 @@ endif()
 list(APPEND CMAKE_FIND_ROOT_PATH "${PROJECT_DIR}/bionic/libc")
 
 # Sysroot.
-set(CMAKE_SYSROOT "${PROJECT_DIR}/bionic/libc")
+#set(CMAKE_SYSROOT "${PROJECT_DIR}/bionic/libc")
 
 # CMake 3.9 tries to use CMAKE_SYSROOT_COMPILE before it gets set from
 # CMAKE_SYSROOT, which leads to using the system's /usr/include. Set this
 # manually.
 # https://github.com/android-ndk/ndk/issues/467
-set(CMAKE_SYSROOT_COMPILE "${CMAKE_SYSROOT}")
+#set(CMAKE_SYSROOT_COMPILE "${CMAKE_SYSROOT}")
 
 # The compiler driver doesn't check any arch specific include locations (though
 # maybe we should add that). Architecture specific headers like asm/ and
@@ -368,12 +384,12 @@ set(CMAKE_SYSROOT_COMPILE "${CMAKE_SYSROOT}")
 #  "${ANDROID_NDK}/platforms/${ANDROID_PLATFORM}/arch-${ANDROID_SYSROOT_ABI}")
 if(ANDROID_SYSROOT_ABI STREQUAL arm)
 set(ANDROID_SYSTEM_LIBRARY_PATH
-  "${PROJECT_DIR}/out/target/product/rk3399_box/symbols/system/lib")
+  "${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/symbols/system/lib")
 else()
   set(ANDROID_SYSTEM_LIBRARY_PATH
-          "${PROJECT_DIR}/out/target/product/rk3399_box/symbols/system/lib64")
+          "${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/symbols/system/lib64")
 endif()
-list(APPEND ANDROID_LINKER_FLAGS "--sysroot ${ANDROID_SYSTEM_LIBRARY_PATH}")
+#list(APPEND ANDROID_LINKER_FLAGS "--sysroot ${ANDROID_SYSTEM_LIBRARY_PATH}")
 
 # find_library searches a handful of paths as described by
 # https://cmake.org/cmake/help/v3.6/command/find_library.html.  Since libraries
@@ -396,17 +412,72 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
   set(ANDROID_HOST_TAG linux-x86)
 #elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL Darwin)
 #  set(ANDROID_HOST_TAG darwin-x86_64)
-#elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-#  set(ANDROID_HOST_TAG windows-x86_64)
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+  set(ANDROID_HOST_TAG windows-x86_64)
+  set(ANDROID_TOOLCHAIN_SUFFIX .exe)
 endif()
-#set(ANDROID_TOOLCHAIN_ROOT "${ANDROID_NDK}/toolchains/${ANDROID_TOOLCHAIN_ROOT}-4.9/prebuilt/${ANDROID_HOST_TAG}")
+
 set(ANDROID_TOOLCHAIN_ROOT "${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_ROOT}-4.9/")
 set(ANDROID_TOOLCHAIN_PREFIX "${ANDROID_TOOLCHAIN_ROOT}/bin/${ANDROID_TOOLCHAIN_NAME}-")
-#if(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
-#  set(ANDROID_TOOLCHAIN_SUFFIX .exe)
-#endif()
 
 #set(ANDROID_HOST_PREBUILTS "${ANDROID_NDK}/prebuilt/${ANDROID_HOST_TAG}")
+
+# form android open source code
+# Options to Control Error and Warning Messages
+list(APPEND ANDROID_COMPILER_FLAGS
+        -W -Wall -Wno-multichar -Werror=format-security
+        -Wno-unused -Winit-self -Wpointer-arith
+        -Werror=return-type -Werror=non-virtual-dtor
+        -Werror=address -Werror=sequence-point
+        -Werror=date-time -Wstrict-aliasing=2
+        -Wno-reserved-id-macro -Wno-format-pedantic
+        -Wno-unused-command-line-argument
+        -Werror=address-of-temporary
+        -Werror=null-dereference
+        )
+list(APPEND ANDROID_COMPILER_FLAGS_CXX
+        -Wsign-promo
+        -Wno-inconsistent-missing-override)
+
+## Formatting of Diagnostics
+list(APPEND ANDROID_COMPILER_FLAGS
+        -fcolor-diagnostics)
+
+## debug
+list(APPEND ANDROID_COMPILER_FLAGS
+        -g)
+
+# for android define
+list(APPEND ANDROID_COMPILER_FLAGS
+        -DANDROID
+        -D_FORTIFY_SOURCE=2
+        -D__compiler_offsetof=__builtin_offsetof
+        -D_USING_LIBCXX)
+#
+## for common features
+list(APPEND ANDROID_COMPILER_FLAGS
+        -fno-exceptions -Wa,--noexecstack
+        -fno-short-enums -fmessage-length=0
+        -nostdlibinc -ffunction-sections
+        -fdata-sections -funwind-tables
+        -fstack-protector-strong
+        -fno-strict-aliasing
+        -no-canonical-prefixes)
+
+## UndefinedBehaviorSanitizer
+list(APPEND ANDROID_COMPILER_FLAGS
+        -fsanitize=integer
+        -fsanitize-trap=all
+        -ftrap-function=abort)
+
+list(APPEND ANDROID_COMPILER_FLAGS_CXX -fvisibility-inlines-hidden -fno-rtti)
+#set(ANDROID_CPP_FEATURES
+#        visibility-inlines-hidden
+#        no-rtti)
+
+# std
+list(APPEND ANDROID_COMPILER_FLAGS -std=gnu99)
+list(APPEND ANDROID_COMPILER_FLAGS_CXX -std=gnu++14)
 
 if(ANDROID_TOOLCHAIN STREQUAL clang)
 #  set(ANDROID_LLVM_TOOLCHAIN_PREFIX "${ANDROID_NDK}/toolchains/llvm/prebuilt/${ANDROID_HOST_TAG}/bin/")
@@ -427,12 +498,17 @@ if(ANDROID_TOOLCHAIN STREQUAL clang)
   set(CMAKE_CXX_COMPILER_VERSION 3.8)
   set(CMAKE_C_STANDARD_COMPUTED_DEFAULT 11)
   set(CMAKE_CXX_STANDARD_COMPUTED_DEFAULT 98)
-  set(CMAKE_C_COMPILER_TARGET   ${ANDROID_LLVM_TRIPLE})
-  set(CMAKE_CXX_COMPILER_TARGET ${ANDROID_LLVM_TRIPLE})
-  set(CMAKE_ASM_COMPILER_TARGET ${ANDROID_LLVM_TRIPLE})
-  set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN   "${ANDROID_TOOLCHAIN_ROOT}")
-  set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "${ANDROID_TOOLCHAIN_ROOT}")
-  set(CMAKE_ASM_COMPILER_EXTERNAL_TOOLCHAIN "${ANDROID_TOOLCHAIN_ROOT}")
+
+  # very important
+  list(APPEND ANDROID_COMPILER_FLAGS -target ${ANDROID_LLVM_TRIPLE})
+  list(APPEND ANDROID_COMPILER_FLAGS -B${ANDROID_TOOLCHAIN_ROOT}bin)
+
+#  set(CMAKE_C_COMPILER_TARGET   ${ANDROID_LLVM_TRIPLE})
+#  set(CMAKE_CXX_COMPILER_TARGET ${ANDROID_LLVM_TRIPLE})
+#  set(CMAKE_ASM_COMPILER_TARGET ${ANDROID_LLVM_TRIPLE})
+#  set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN   "${ANDROID_TOOLCHAIN_ROOT}")
+#  set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "${ANDROID_TOOLCHAIN_ROOT}")
+#  set(CMAKE_ASM_COMPILER_EXTERNAL_TOOLCHAIN "${ANDROID_TOOLCHAIN_ROOT}")
   set(ANDROID_AR "${ANDROID_TOOLCHAIN_PREFIX}ar${ANDROID_TOOLCHAIN_SUFFIX}")
   set(ANDROID_RANLIB "${ANDROID_TOOLCHAIN_PREFIX}ranlib${ANDROID_TOOLCHAIN_SUFFIX}")
 elseif(ANDROID_TOOLCHAIN STREQUAL gcc)
@@ -451,21 +527,71 @@ endif()
 #  message(FATAL_ERROR "Invalid Android sysroot: ${CMAKE_SYSROOT}.")
 #endif()
 
-# Generic flags.
-list(APPEND ANDROID_COMPILER_FLAGS
-  -g
-  -DANDROID
-  -ffunction-sections
-  -funwind-tables
-  -fstack-protector-strong
-  -no-canonical-prefixes)
+##### ANDROID_DISABLE_RELRO=false
+# linker
+if (ANDROID_SYSROOT_ABI STREQUAL arm)
+  list(APPEND ANDROID_LINKER_FLAGS_EXE
+          -Bdynamic -Wl,-dynamic-linker,/system/bin/linker)
+else()
+  list(APPEND ANDROID_LINKER_FLAGS_EXE
+          -Bdynamic -Wl,-dynamic-linker,/system/bin/linker64)
+endif()
+
+# for crt
+list(APPEND ANDROID_LINKER_FLAGS_SHARD
+        ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/lib/crtbegin_so.o
+        ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/lib/crtend_so.o )
+
+list(APPEND ANDROID_LINKER_FLAGS_EXE
+        ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/lib/crtbegin_dynamic.o
+        ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/lib/crtend_android.o)
+
+# ld
+# TODO will add in <cmake>/Modules/Compiler/Clang.cmake
+#list(APPEND ANDROID_LINKER_FLAGS -fuse-ld=gold -Wl,--icf=safe)
+#list(APPEND ANDROID_LINKER_FLAGS_EXE -Wl,--allow-shlib-undefined -Wl,--export-dynamic)
+
+# link path
 list(APPEND ANDROID_LINKER_FLAGS
-  -Wl,--build-id
+        -Wl,-rpath-link=${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/lib)
+
+# lib path
+list(APPEND ANDROID_LINKER_FLAGS
+        "-L${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/lib")
+
+# for standard lib
+list(APPEND ANDROID_LINKER_FLAGS
+        -llog -lc++ -ldl -ldl -lc
+        -Wl,--no-whole-archive
+        ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libcompiler_rt-extras_intermediates/libcompiler_rt-extras.a
+        )
+
+list(APPEND ANDROID_LINKER_FLAGS_SHARD
+        -Wl,--no-whole-archive
+        ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libsigchain_intermediates/libsigchain.a
+        ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/${ANDROID_TOOLCHAIN_NAME}/lib64/libatomic.a
+        ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9/libgcc.a)
+
+list(APPEND ANDROID_LINKER_FLAGS
+  -nostdlib
+  --no-undefined
+  -Wl,--build-id=md5
   -Wl,--warn-shared-textrel
   -Wl,--fatal-warnings
-  -Wl,--gc-sections)
+  -Wl,--gc-sections
+  -Wl,--hash-style=gnu
+  -Wl,--no-undefined-version
+  -fuse-ld=gold
+  -Wl,--allow-shlib-undefined
+  -Wl,-z,noexecstack
+  -Wl,-z,now
+  )
+
+list(APPEND ANDROID_LINKER_FLAGS_SHARD
+   -Wl,-z,relro)
+
 list(APPEND ANDROID_LINKER_FLAGS_EXE
-#  -Wl,--gc-sections
+  -pie
   -Wl,-z,nocopyreloc)
 
 # Debug and release flags.
@@ -489,11 +615,21 @@ if(ANDROID_ABI STREQUAL armeabi)
 endif()
 if(ANDROID_ABI STREQUAL armeabi-v7a)
   list(APPEND ANDROID_COMPILER_FLAGS
-    -march=armv7-a
+# clion will pop error
+#    -march=armv7-a
+    -D__ARM_FEATURE_LPAE=1
     -mfloat-abi=softfp
-    -mfpu=vfpv3-d16)
+    -mcpu=cortex-a15
+    )
   list(APPEND ANDROID_LINKER_FLAGS
     -Wl,--fix-cortex-a8)
+endif()
+if(ANDROID_ABI STREQUAL arm64)
+  list(APPEND ANDROID_COMPILER_FLAGS
+          -mcpu=cortex-a53
+          -Werror=pointer-to-int-cast)
+  list(APPEND ANDROID_LINKER_FLAGS
+          -Wl,--fix-cortex-a53-843419)
 endif()
 if(ANDROID_ABI STREQUAL mips)
   list(APPEND ANDROID_COMPILER_FLAGS
@@ -509,8 +645,8 @@ if(ANDROID_ABI MATCHES "^armeabi" AND ANDROID_TOOLCHAIN STREQUAL clang)
 endif()
 if(ANDROID_ABI STREQUAL mips AND ANDROID_TOOLCHAIN STREQUAL clang)
   # Help clang use mips64el multilib GCC
-  list(APPEND ANDROID_LINKER_FLAGS
-    "\"-L${ANDROID_TOOLCHAIN_ROOT}/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/32/mips-r1\"")
+#  list(APPEND ANDROID_LINKER_FLAGS
+#    "\"-L${ANDROID_TOOLCHAIN_ROOT}/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/32/mips-r1\"")
 endif()
 if(ANDROID_ABI STREQUAL x86)
   # http://b.android.com/222239
@@ -536,24 +672,21 @@ endif()
 #    "${ANDROID_NDK}/sources/cxx-stl/${ANDROID_STL_PREFIX}/libs/${ANDROID_ABI}/include"
 #    "${ANDROID_NDK}/sources/cxx-stl/${ANDROID_STL_PREFIX}/include/backward")
 #elseif(ANDROID_STL MATCHES "^c\\+\\+_")
-  set(ANDROID_STL_PREFIX llvm-libc++)
-  if(ANDROID_ABI MATCHES "^armeabi")
-    list(APPEND ANDROID_LINKER_FLAGS -Wl,--exclude-libs,libunwind_llvm.a)
-  endif()
+#  set(ANDROID_STL_PREFIX llvm-libc++)
+#  if(ANDROID_ABI MATCHES "^armeabi")
+#    list(APPEND ANDROID_LINKER_FLAGS -Wl,--exclude-libs,libunwind_llvm.a)
+#  endif()
 #  list(APPEND ANDROID_COMPILER_FLAGS_CXX
 #    -std=c++11)
-  if(ANDROID_TOOLCHAIN STREQUAL gcc)
-    list(APPEND ANDROID_COMPILER_FLAGS_CXX
-      -fno-strict-aliasing)
-  endif()
+#  if(ANDROID_TOOLCHAIN STREQUAL gcc)
+#    list(APPEND ANDROID_COMPILER_FLAGS_CXX
+#      -fno-strict-aliasing)
+#  endif()
 
   # Add the libc++ lib directory to the path so the linker scripts can pick up
   # the extra libraries.
 #  list(APPEND ANDROID_LINKER_FLAGS
 #    "-L${ANDROID_NDK}/sources/cxx-stl/${ANDROID_STL_PREFIX}/libs/${ANDROID_ABI}")
-# TODO
-  list(APPEND ANDROID_LINKER_FLAGS
-    "-L${PROJECT_DIR}/out/target/product/rk3399_box/obj/lib")
 
 #  set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES
 #    "${ANDROID_NDK}/sources/cxx-stl/${ANDROID_STL_PREFIX}/include"
@@ -561,7 +694,7 @@ endif()
 #    "${ANDROID_NDK}/sources/cxx-stl/${ANDROID_STL_PREFIX}abi/include")
 #endif()
 
-set(ANDROID_CXX_STANDARD_LIBRARIES)
+#set(ANDROID_CXX_STANDARD_LIBRARIES)
 #foreach(library ${ANDROID_STL_STATIC_LIBRARIES})
 #  list(APPEND ANDROID_CXX_STANDARD_LIBRARIES
 #    "${ANDROID_NDK}/sources/cxx-stl/${ANDROID_STL_PREFIX}/libs/${ANDROID_ABI}/lib${library}.a")
@@ -572,31 +705,37 @@ set(ANDROID_CXX_STANDARD_LIBRARIES)
 #endforeach()
 # TODO
 #list(APPEND ANDROID_CXX_STANDARD_LIBRARIES
-#            "${PROJECT_DIR}/out/target/product/rk3399_box/obj_arm/STATIC_LIBRARIES/libunwind_llvm_intermediates/libunwind_llvm.a")
-list(APPEND ANDROID_CXX_STANDARD_LIBRARIES
-        "${PROJECT_DIR}/out/target/product/rk3399_box/obj/STATIC_LIBRARIES/libcompiler_rt-extras_intermediates/libcompiler_rt-extras.a")
-# TODO  冲突 TODO
+#            "${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libunwind_llvm_intermediates/libunwind_llvm.a")
+#list(APPEND ANDROID_CXX_STANDARD_LIBRARIES
+#        "${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libcompiler_rt-extras_intermediates/libcompiler_rt-extras.a")
+## default whole-archive lib
+#list(APPEND ANDROID_CXX_STANDARD_LIBRARIES
+#        ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libsigchain_intermediates/libsigchain.a)
+## TODO  冲突 TODO
 #list(APPEND ANDROID_CXX_STANDARD_LIBRARIES
 #        "${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/${ANDROID_TOOLCHAIN_NAME}/lib64/libatomic.a")
-#### common ####
-list(APPEND ANDROID_CXX_STANDARD_LIBRARIES
-        "${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9/libgcc.a")
+##### common ####
+#list(APPEND ANDROID_CXX_STANDARD_LIBRARIES
+#        "${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9/libgcc.a")
+#
+#set(CMAKE_C_STANDARD_LIBRARIES_INIT "-llog -lc++ -ldl -ldl -lc")
+#set(CMAKE_CXX_STANDARD_LIBRARIES_INIT "${CMAKE_C_STANDARD_LIBRARIES_INIT}")
+#
+#if(ANDROID_CXX_STANDARD_LIBRARIES)
+#  string(REPLACE ";" "\" \"" ANDROID_CXX_STANDARD_LIBRARIES "\"${ANDROID_CXX_STANDARD_LIBRARIES}\"")
+#  set(CMAKE_C_STANDARD_LIBRARIES_INIT "${CMAKE_C_STANDARD_LIBRARIES_INIT} ${ANDROID_CXX_STANDARD_LIBRARIES}")
+#  set(CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES_INIT} ${ANDROID_CXX_STANDARD_LIBRARIES}")
+#  set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES_INIT} ${ANDROID_CXX_STANDARD_LIBRARIES}")
+#  set(CMAKE_CXX_STANDARD_LIBRARIES_INIT "${CMAKE_CXX_STANDARD_LIBRARIES_INIT} ${ANDROID_CXX_STANDARD_LIBRARIES}")
+#endif()
 
-set(CMAKE_C_STANDARD_LIBRARIES_INIT "-latomic -llog -lm -lc++ -ldl -ldl -lc")
-set(CMAKE_CXX_STANDARD_LIBRARIES_INIT "${CMAKE_C_STANDARD_LIBRARIES_INIT}")
-if(ANDROID_CXX_STANDARD_LIBRARIES)
-  string(REPLACE ";" "\" \"" ANDROID_CXX_STANDARD_LIBRARIES "\"${ANDROID_CXX_STANDARD_LIBRARIES}\"")
-  set(CMAKE_CXX_STANDARD_LIBRARIES_INIT "${CMAKE_CXX_STANDARD_LIBRARIES_INIT} ${ANDROID_CXX_STANDARD_LIBRARIES}")
-endif()
-
-##### TODO
 # Configuration specific flags.
-if(ANDROID_PIE)
-  set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-  list(APPEND ANDROID_LINKER_FLAGS_EXE
-    -pie
-    -fPIE)
-endif()
+#if(ANDROID_PIE)
+#  set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+#  list(APPEND ANDROID_LINKER_FLAGS_EXE
+#    -pie
+#    -fPIE)
+#endif()
 if(ANDROID_CPP_FEATURES)
   separate_arguments(ANDROID_CPP_FEATURES)
   foreach(feature ${ANDROID_CPP_FEATURES})
@@ -608,14 +747,15 @@ if(ANDROID_CPP_FEATURES)
   endforeach()
   string(REPLACE ";" " " ANDROID_CPP_FEATURES "${ANDROID_CPP_FEATURES}")
 endif()
-if(NOT ANDROID_ALLOW_UNDEFINED_SYMBOLS)
-  list(APPEND ANDROID_LINKER_FLAGS
-    -Wl,--no-undefined)
-endif()
+#if(NOT ANDROID_ALLOW_UNDEFINED_SYMBOLS)
+#  list(APPEND ANDROID_LINKER_FLAGS
+#    -Wl,--no-undefined)
+#endif()
 if(ANDROID_ABI MATCHES "armeabi")
   if(ANDROID_ARM_MODE STREQUAL thumb)
     list(APPEND ANDROID_COMPILER_FLAGS
-      -mthumb)
+      -mthumb
+      -fomit-frame-pointer)
   elseif(ANDROID_ARM_MODE STREQUAL arm)
     list(APPEND ANDROID_COMPILER_FLAGS
       -marm)
@@ -627,17 +767,17 @@ if(ANDROID_ABI MATCHES "armeabi")
       -mfpu=neon)
   endif()
 endif()
-if(ANDROID_DISABLE_NO_EXECUTE)
-  list(APPEND ANDROID_COMPILER_FLAGS
-    -Wa,--execstack)
-  list(APPEND ANDROID_LINKER_FLAGS
-    -Wl,-z,execstack)
-else()
-  list(APPEND ANDROID_COMPILER_FLAGS
-    -Wa,--noexecstack)
-  list(APPEND ANDROID_LINKER_FLAGS
-    -Wl,-z,noexecstack)
-endif()
+#if(ANDROID_DISABLE_NO_EXECUTE)
+#  list(APPEND ANDROID_COMPILER_FLAGS
+#    -Wa,--execstack)
+#  list(APPEND ANDROID_LINKER_FLAGS
+#    -Wl,-z,execstack)
+#else()
+#  list(APPEND ANDROID_COMPILER_FLAGS
+#    -Wa,--noexecstack)
+#  list(APPEND ANDROID_LINKER_FLAGS
+#    -Wl,-z,noexecstack)
+#endif()
 if(ANDROID_TOOLCHAIN STREQUAL clang)
   # CMake automatically forwards all compiler flags to the linker,
   # and clang doesn't like having -Wa flags being used for linking.
@@ -646,44 +786,20 @@ if(ANDROID_TOOLCHAIN STREQUAL clang)
   list(APPEND ANDROID_LINKER_FLAGS
     -Qunused-arguments)
 endif()
-if(ANDROID_DISABLE_RELRO)
-  list(APPEND ANDROID_LINKER_FLAGS
-    -Wl,-z,norelro -Wl,-z,lazy)
-else()
-  list(APPEND ANDROID_LINKER_FLAGS
-    -Wl,-z,relro -Wl,-z,now)
-endif()
-if(ANDROID_DISABLE_FORMAT_STRING_CHECKS)
-  list(APPEND ANDROID_COMPILER_FLAGS
-    -Wno-error=format-security)
-else()
-  list(APPEND ANDROID_COMPILER_FLAGS
-    -Wformat -Werror=format-security)
-endif()
-
-######### form android source code ###############
-SET(ANDROID_LINKER_FLAGS_SHARD)
-# common
-list(APPEND ANDROID_LINKER_FLAGS
-        -nostdlib -Wl,--build-id=md5 -Wl,--icf=safe -Wl,--hash-style=gnu -Wl,--no-undefined-version -Wl,--no-undefined )
-
-# for shard
-list(APPEND ANDROID_LINKER_FLAGS_SHARD
-        ${PROJECT_DIR}/out/target/product/rk3399_box/obj_arm/lib/crtbegin_so.o
-        ${PROJECT_DIR}/out/target/product/rk3399_box/obj_arm/lib/crtend_so.o )
-
-# for exe
-# -Wl,--fix-cortex-a53-843419 -Wl,-maarch64linux
-list(APPEND ANDROID_LINKER_FLAGS_EXE
-        -Bdynamic -Wl,-dynamic-linker,/system/bin/linker64
-        -Wl,-rpath-link=${PROJECT_DIR}/out/target/product/rk3399_box/obj/lib
-        ${PROJECT_DIR}/out/target/product/rk3399_box/obj/lib/crtbegin_dynamic.o
-        -fuse-ld=gold -Wl,--allow-shlib-undefined
-        -Wl,--whole-archive
-        ${PROJECT_DIR}/out/target/product/rk3399_box/obj/STATIC_LIBRARIES/libsigchain_intermediates/libsigchain.a
-        -Wl,--version-script,${PROJECT_DIR}/art/sigchainlib/version-script.txt
-        -Wl,--export-dynamic -Wl,--no-undefined ${PROJECT_DIR}/out/target/product/rk3399_box/obj/lib/crtend_android.o)
-##################################################
+#if(ANDROID_DISABLE_RELRO)
+#  list(APPEND ANDROID_LINKER_FLAGS
+#    -Wl,-z,norelro -Wl,-z,lazy)
+#else()
+#  list(APPEND ANDROID_LINKER_FLAGS
+#    -Wl,-z,relro -Wl,-z,now)
+#endif()
+#if(ANDROID_DISABLE_FORMAT_STRING_CHECKS)
+#  list(APPEND ANDROID_COMPILER_FLAGS
+#    -Wno-error=format-security)
+#else()
+#  list(APPEND ANDROID_COMPILER_FLAGS
+#    -Wformat -Werror=format-security)
+#endif()
 
 # Convert these lists into strings.
 string(REPLACE ";" " " ANDROID_COMPILER_FLAGS           "${ANDROID_COMPILER_FLAGS}")
