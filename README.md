@@ -2,6 +2,13 @@
 We can use it to edit the native source code of Android.
 It can compile c/c++ code and run in your android devices, but the compilation may fail.
 
+### Test environment
+- Android N source tree
+
+### Depend
+- Fully compiled android source tree
+- ${your android source path}/prebuilts/clang/host/linux-x86/clang-2690385
+
 ### .idea
 I ignored some folders by default. They defined in .idea/misc.xml.
 Because most files are ignored. So CLion is working perfectly.
