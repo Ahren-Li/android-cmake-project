@@ -55,9 +55,9 @@ else()
     SET(libcutils_asm ${src_dir}/arch-arm64/android_memset.S)
 endif()
 
-add_library(libcutils SHARED ${libcutils_common_sources} ${libcutils_nonwindows_sources} ${libcutils_sources} ${libcutils_asm})
-target_compile_options(libcutils PUBLIC $<$<COMPILE_LANGUAGE:C>:-std=gnu90>)
-target_compile_options(libcutils PUBLIC $<$<COMPILE_LANGUAGE:C>:-Werror -Wall -Wextra>)
+add_library(cutils SHARED ${libcutils_common_sources} ${libcutils_nonwindows_sources} ${libcutils_sources} ${libcutils_asm})
+target_compile_options(cutils PUBLIC $<$<COMPILE_LANGUAGE:C>:-std=gnu90>)
+target_compile_options(cutils PUBLIC $<$<COMPILE_LANGUAGE:C>:-Werror -Wall -Wextra>)
 
-target_link_libraries(libcutils
+target_link_libraries(cutils
         ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/obj/STATIC_LIBRARIES/liblog_intermediates/liblog.a)

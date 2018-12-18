@@ -78,5 +78,5 @@ target_compile_definitions( libsurfaceflinger PUBLIC  -DUSE_AML_HW_ACTIVE_MODE)
 #amlogic
 target_compile_definitions( libsurfaceflinger PUBLIC  -DUSE_AML_HW_POST_SCALE)
 
-ADD_DEPENDENCIES(libsurfaceflinger libcutils)
+ADD_DEPENDENCIES(libsurfaceflinger cutils)
 

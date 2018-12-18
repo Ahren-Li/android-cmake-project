@@ -38,4 +38,4 @@ SET(libutils_src
 
 add_library(libutils ${libutils_src} ${libutils_common})
 target_include_directories(libutils PUBLIC ${PROJECT_DIR}/external/safe-iop/include)
-target_compile_options(libcutils PUBLIC $<$<COMPILE_LANGUAGE:C>:-Werror -fvisibility=protected>)
+target_compile_options(libutils PUBLIC $<$<COMPILE_LANGUAGE:C>:-Werror -fvisibility=protected>)
