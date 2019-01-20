@@ -25,6 +25,9 @@ SET(init_sources
         ${src_dir}/watchdogd.cpp
         )
 
+if(EXISTS  ${src_dir}/vendor.cpp)
+    set(init_sources ${init_sources} ${src_dir}/vendor.cpp)
+endif()
 
 add_library(init SHARED ${init_sources})
 

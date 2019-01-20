@@ -4,10 +4,13 @@ SET(ANDROID_DEBUG OFF)
 
 SET(PROJECT_DIR "${CMAKE_HOME_DIRECTORY}")
 include(${PROJECT_DIR}/env_android.cmake)
+
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_DIR}/Cmake")
 
 set(CMAKE_TOOLCHAIN_FILE ${PROJECT_DIR}/android.toolchain.cmake)
 
+include(${PROJECT_DIR}/Cmake/AndroidMK/LoadMoudle.cmake)
+include(${PROJECT_DIR}/Cmake/AndroidMK/Parse.cmake)
 project(Android)
 
 if (ANDROID)
@@ -69,12 +72,29 @@ include_directories( SYSTEM
         "${PROJECT_DIR}/bionic/libm/include/${ANDROID_SYSROOT_ABI}"
         )
 
-include(libcutils)
-include(libutil)
-include(libui)
-include(libgui)
-include(libbinder)
-include(SurfaceFlinger)
+#include(libcutils)
+#include(libutil)
+#include(libui)
+#include(libgui)
+#include(libbinder)
+#include(SurfaceFlinger)
+#include(rockchip_audio)
+#include(init)
+loadMoudle()
+parseAndroidMK(libsurfaceflinger ${MK_SHARED})
+#parseAndroidMK(libui ${MK_SHARED})
+#parseAndroidMK(libgui ${MK_SHARED})
+#doMoudleDependencies("libsurfaceflinger_${MK_SHARED}")
+#parseAndroidMK(libz ${MK_SHARED})
+#parseAndroidMK(lili_test ${MK_SHARED})
+#parseAndroidMK(lili_dep ${MK_SHARED})
+
+#SET(TEST "dasda_$(test)_sdasda_$(dsdsad)_sdasd")
+##SET(TEST "$(sdasd_$(dasda_$(sdasd_$(dsadasd)_sdasd)_sdasd)_sdsa)")
+#
+#if( ${TEST} MATCHES "^\\$\\(.*\\(.*\\).*\\)" )
+#    message("TEST:MATCHES")
+#endif()
 
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/android-test/CMakeLists.txt)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/android-test)

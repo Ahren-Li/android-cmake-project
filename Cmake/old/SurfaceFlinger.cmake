@@ -2,7 +2,7 @@ if(ANDROID_LIB_SURFACE_FLINGER)
     return()
 endif()
 SET(ANDROID_LIB_SURFACE_FLINGER ON)
-
+SET(HWC2 false)
 #include(libcutils)
 #include(libgui)
 #include(libui)
@@ -57,13 +57,24 @@ set(surfaceflinger_src
         ${src_dir}/RenderEngine/GLES20RenderEngine.cpp
         )
 
+set(surfaceflinger_hwc1_src
+        ${src_dir}/SurfaceFlinger_hwc1.cpp
+        ${src_dir}/DisplayHardware/HWComposer_hwc1.cpp)
+
 set(surfaceflinger_hwc2_src
         ${src_dir}/SurfaceFlinger.cpp
         ${src_dir}/DisplayHardware/HWComposer.cpp)
 
-add_library(libsurfaceflinger SHARED ${surfaceflinger_src} ${surfaceflinger_hwc2_src})
+if(HWC2)
+    set(surfaceflinger_src ${surfaceflinger_src} ${surfaceflinger_hwc2_src})
+else()
+    set(surfaceflinger_src ${surfaceflinger_src} ${surfaceflinger_hwc1_src})
+endif()
+add_library(libsurfaceflinger SHARED ${surfaceflinger_src})
 
-target_compile_definitions( libsurfaceflinger PUBLIC  -DUSE_HWC2)
+if(HWC2)
+    target_compile_definitions( libsurfaceflinger PUBLIC  -DUSE_HWC2)
+endif()
 target_compile_definitions( libsurfaceflinger PUBLIC  -DLOG_TAG=\"SurfaceFlinger\")
 
 target_compile_definitions( libsurfaceflinger PUBLIC  -DGL_GLEXT_PROTOTYPES -DEGL_EGLEXT_PROTOTYPES)
