@@ -1,6 +1,6 @@
 include $(CLEAR_VARS)
 
-commsrc := common.cpp
+commsrc += common.cpp
 
 LOCAL_CFLAGS +=  -DLILI
 

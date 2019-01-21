@@ -232,11 +232,14 @@ endfunction()
 
 function(parseValues line local_key)
     SET(parseValues_valueAppend OFF)
+
     if( "${line}" MATCHES ".*:=.*")
         string(REPLACE ":=" ";" parseValues_line_list "${line}")
     elseif( "${line}" MATCHES ".*\\+=.*")
         string(REPLACE "+=" ";" parseValues_line_list "${line}")
         SET(parseValues_valueAppend ON)
+    elseif( "${line}" MATCHES ".*=.*")
+        string(REPLACE "=" ";" parseValues_line_list "${line}")
     endif()
 
     list(GET parseValues_line_list 0 parseValues_key)
