@@ -5,8 +5,6 @@ SET(MK_STATIC "STATIC")
 SET(MK_EXECAB "EXECAB")
 
 SET(MOUDLE_START OFF)
-#SET(IN_IF_BLOCK OFF)
-#SET(IN_IF_BLOCK_NUM 0)
 
 SET(TARGET_TEST true)
 SET(TARGET_USES_HWC2 true)
@@ -129,6 +127,7 @@ function(initEnv)
     SET(LOCAL_C_INCLUDES "" PARENT_SCOPE)
     SET(LOCAL_SHARED_LIBRARIES "" PARENT_SCOPE)
     SET(LOCAL_STATIC_LIBRARIES "" PARENT_SCOPE)
+    SET(LOCAL_EXPORT_C_INCLUDE_DIRS "" PARENT_SCOPE)
 endfunction()
 
 function(parseAndroidMK module_name type)
@@ -179,4 +178,5 @@ function(parseAndroidMK module_name type)
     endforeach()
 
     doMoudleDependencies("${module_name}_${type}")
+    doExportInclude("${module_name}_${type}")
 endfunction()
