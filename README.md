@@ -1,9 +1,17 @@
 # android-cmake-project
 We can use it to edit the native source code of Android.
 It can compile c/c++ code and run in your android devices, but the compilation may fail.
+You just need to provide the name of the module.
+- Automatically find the module path
+- Support `if`、`ifeq`、`ifneq`、`strip`、`filter`
+- **Automatically parse Android.mk conversion to cmake configuration**
+- **Automatically parse module's dependencies**
+- **Automatically parse module's include dirs**
+- **Automatically parse module's definitions**
 
 ### Test environment
 - Android N source tree
+- Ubuntu 16.04
 
 ### Depend
 - Fully compiled android source tree
@@ -13,15 +21,11 @@ It can compile c/c++ code and run in your android devices, but the compilation m
 I ignored some folders by default. They defined in .idea/misc.xml.
 Because most files are ignored. So CLion is working perfectly.
 
-### Cmake
-Place some Android modules of Cmake files under this folder.  
-For example:[libcutil.cmake](https://github.com/Ahren-Li/android-cmake-project/blob/master/Cmake/libcutils.cmake)
-
 ### env_android.cmake
 Define your own Android environment.
 
 ### How to use it
-Copy all file  to your `[Android Source Code]`,  and configure your own environment
+Copy or link all file  to your `[Android Source Code]`,  and configure your own environment
 for example:
 ```makefile
 #env_android.cmake
@@ -40,7 +44,20 @@ set(ANDROID_STL c++_static)
 |  ANDROID_TOOLCHAIN_NAME | clang | toolchan, currently only supports clang |
 |  ANDROID_STL            | N/A | future support content |
 
-
+In CMakeLists.txt
+```Makefile
+# init all module
+loadMoudle()
+# load adbd(EXECABLE) and its dependencies
+parseAndroidMK(adbd ${MK_EXECAB})
+# load init(EXECABLE) and its dependencies
+parseAndroidMK(init ${MK_EXECAB})
+```
+|    Property     | description |
+| --------------- | ----------- |
+|    MK_EXECAB    |   module of execable target    |
+|    MK_SHARED    |   string of shared libs target |
+|    MK_STATIC    |   string of static libs target |
 
 ### Why do you need it
 
@@ -51,11 +68,13 @@ Can help clion compile android native module, but currently only libcutil can be
 ![2](https://www.lili.kim/2018/11/24/android/Use%20CLion%20import%20Android%20code/test2.png)
 
 ### Bugs
+- not support windows
+- not support `include xxx.mk` in Android.mk
+- not support make function:`all-makefiles-under` ......
 
 ### Future support
-- Simpler dependency definition
-- More module definitions
-- More module compilation support
+- used on Windows
+- support make function
 
 ### Anyway
 If you have any suggestion or solution, welcome to discuss.
