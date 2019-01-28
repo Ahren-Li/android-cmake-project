@@ -1,7 +1,8 @@
 # android-cmake-project
-We can use it to edit the native source code of Android.
-It can compile c/c++ code and run in your android devices, but the compilation may fail.
-You just need to provide the name of the module.
+We can use it to edit the native source code of Android. 
+It can compile c/c++ code and run in your android devices, but the compilation may fail. 
+You just need to provide the name of the module. 
+
 - Automatically find the module path
 - Support `if`、`ifeq`、`ifneq`、`strip`、`filter`
 - **Automatically parse Android.mk conversion to cmake configuration**
@@ -71,10 +72,12 @@ Can help clion compile android native module, but currently only libcutil can be
 - not support windows
 - not support `include xxx.mk` in Android.mk
 - not support make function:`all-makefiles-under` ......
+- not support Android.bp
 
 ### Future support
 - used on Windows
 - support make function
+- Android.bp
 
 ### Anyway
 If you have any suggestion or solution, welcome to discuss.
