@@ -13,10 +13,12 @@ You just need to provide the name of the module.
 ### Test environment
 - Android N source tree
 - Ubuntu 16.04
+- Windows 10
 
 ### Depend
 - Fully compiled android source tree
-- ${your android source path}/prebuilts/clang/host/linux-x86/clang-2690385
+- Linux: ${your android source path}/prebuilts/clang/host/linux-x86/clang-2690385
+- Windows: Android NDK
 
 ### .idea
 I ignored some folders by default. They defined in .idea/misc.xml.
@@ -31,6 +33,7 @@ for example:
 ```makefile
 #env_android.cmake
 set(ANDROID_LUNCH rk3399_box)
+set(ANDROID_NDK "Your NDK path")
 set(ANDROID_TARGET_ARCH arm64)
 set(ANDROID_ABI "arm64-v8a")
 set(ANDROID_TOOLCHAIN_NAME "clang")
@@ -40,6 +43,7 @@ set(ANDROID_STL c++_static)
 |        Property         |   value   | description |
 | ----------------------- | --------- | ----------- |
 |  ANDROID_LUNCH          | string |your own android lunch target    |
+|  ANDROID_NDK            | android ndk path    |
 |  ANDROID_TARGET_ARCH    | arm/arm64 |lunch target arch    |
 |  ANDROID_ABI            | arm64-v8a/armeabi-v7a | clion complie abi |
 |  ANDROID_TOOLCHAIN_NAME | clang | toolchan, currently only supports clang |
@@ -69,13 +73,13 @@ Can help clion compile android native module, but currently only libcutil can be
 ![2](https://www.lili.kim/2018/11/24/android/Use%20CLion%20import%20Android%20code/test2.png)
 
 ### Bugs
-- not support windows
+- ~~not support windows~~
 - not support `include xxx.mk` in Android.mk
 - not support make function:`all-makefiles-under` ......
 - not support Android.bp
 
 ### Future support
-- used on Windows
+- ~~used on Windows~~
 - support make function
 - Android.bp
 
