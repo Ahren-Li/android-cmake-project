@@ -193,6 +193,7 @@ endif()
 # Export configurable variables for the try_compile() command.
 set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
   PROJECT_DIR
+  ANDROID_NDK
   ANDROID_LUNCH
   ANDROID_TARGET_ARCH
   ANDROID_TOOLCHAIN
@@ -415,9 +416,17 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
   set(ANDROID_HOST_TAG windows-x86_64)
   set(ANDROID_TOOLCHAIN_SUFFIX .exe)
+  if(NOT ANDROID_NDK)
+    message(FATAL_ERROR "Android NDK not set!")
+    return()
+  endif()
 endif()
 
-set(ANDROID_TOOLCHAIN_ROOT "${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_ROOT}-4.9/")
+if ("${ANDROID_HOST_TAG}" MATCHES "windows.*")
+  set(ANDROID_TOOLCHAIN_ROOT "${ANDROID_NDK}/toolchains/${ANDROID_TOOLCHAIN_ROOT}-4.9/prebuilt/${ANDROID_HOST_TAG}/")
+else()
+  set(ANDROID_TOOLCHAIN_ROOT "${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_ROOT}-4.9/")
+endif ()
 set(ANDROID_TOOLCHAIN_PREFIX "${ANDROID_TOOLCHAIN_ROOT}/bin/${ANDROID_TOOLCHAIN_NAME}-")
 
 #set(ANDROID_HOST_PREBUILTS "${ANDROID_NDK}/prebuilt/${ANDROID_HOST_TAG}")
@@ -480,8 +489,11 @@ list(APPEND ANDROID_COMPILER_FLAGS -std=gnu99)
 list(APPEND ANDROID_COMPILER_FLAGS_CXX -std=gnu++14)
 
 if(ANDROID_TOOLCHAIN STREQUAL clang)
-#  set(ANDROID_LLVM_TOOLCHAIN_PREFIX "${ANDROID_NDK}/toolchains/llvm/prebuilt/${ANDROID_HOST_TAG}/bin/")
-  set(ANDROID_LLVM_TOOLCHAIN_PREFIX "${PROJECT_DIR}/prebuilts/clang/host/${ANDROID_HOST_TAG}/clang-2690385/bin/")
+  if ("${ANDROID_HOST_TAG}" MATCHES "windows.*")
+    set(ANDROID_LLVM_TOOLCHAIN_PREFIX "${ANDROID_NDK}/toolchains/llvm/prebuilt/${ANDROID_HOST_TAG}/bin/")
+  else()
+    set(ANDROID_LLVM_TOOLCHAIN_PREFIX "${PROJECT_DIR}/prebuilts/clang/host/${ANDROID_HOST_TAG}/clang-2690385/bin/")
+  endif()
   set(ANDROID_C_COMPILER   "${ANDROID_LLVM_TOOLCHAIN_PREFIX}clang${ANDROID_TOOLCHAIN_SUFFIX}")
   set(ANDROID_CXX_COMPILER "${ANDROID_LLVM_TOOLCHAIN_PREFIX}clang++${ANDROID_TOOLCHAIN_SUFFIX}")
   set(ANDROID_ASM_COMPILER "${ANDROID_LLVM_TOOLCHAIN_PREFIX}clang${ANDROID_TOOLCHAIN_SUFFIX}")
@@ -581,11 +593,16 @@ list(APPEND ANDROID_LINKER_FLAGS
   -Wl,--gc-sections
   -Wl,--hash-style=gnu
   -Wl,--no-undefined-version
-  -fuse-ld=gold
-  -Wl,--allow-shlib-undefined
+#  -fuse-ld=gold
+#  -Wl,--allow-slib-undefined
   -Wl,-z,noexecstack
   -Wl,-z,now
   )
+
+# Gold linker only supports Linux
+if (NOT "${ANDROID_HOST_TAG}" MATCHES "windows.*")
+  list(APPEND ANDROID_LINKER_FLAGS -fuse-ld=gold -Wl,--allow-slib-undefined)
+endif()
 
 list(APPEND ANDROID_LINKER_FLAGS_SHARD
    -Wl,-z,relro)
