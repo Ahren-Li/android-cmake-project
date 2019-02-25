@@ -12,6 +12,9 @@ SET(TARGET_BUILD_VARIANT eng)
 SET(TARGET_BOARD_TEST TARGET_BOARD_PLATFORM)
 SET(TARGET_BOARD_PLATFORM rk3399)
 SET(TARGET_BOARD_PLATFORM_PRODUCT box)
+###########################
+SET(TOP ${PROJECT_DIR})
+SET(JNI_H_INCLUDE "libnativehelper/include/nativehelper")
 
 include(${CMAKE_CURRENT_LIST_DIR}/ParseIf.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/addTarget.cmake)
