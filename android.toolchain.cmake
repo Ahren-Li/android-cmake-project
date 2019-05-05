@@ -573,7 +573,7 @@ list(APPEND ANDROID_LINKER_FLAGS
 
 # for standard lib
 list(APPEND ANDROID_LINKER_FLAGS
-        -llog -lc++ -ldl -ldl -lc
+        -llog -lc++ -ldl -ldl -lc -lm
         -Wl,--no-whole-archive
         ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libcompiler_rt-extras_intermediates/libcompiler_rt-extras.a
         )
@@ -599,9 +599,9 @@ list(APPEND ANDROID_LINKER_FLAGS
   -Wl,-z,now
   )
 
-# Gold linker only supports Linux
+# Gold linker only supports Linux -Wl,--allow-slib-undefined
 if (NOT "${ANDROID_HOST_TAG}" MATCHES "windows.*")
-  list(APPEND ANDROID_LINKER_FLAGS -fuse-ld=gold -Wl,--allow-slib-undefined)
+  list(APPEND ANDROID_LINKER_FLAGS -fuse-ld=gold )
 endif()
 
 list(APPEND ANDROID_LINKER_FLAGS_SHARD
