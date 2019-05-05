@@ -161,7 +161,7 @@ function(parseAndroidMK module_name type)
     foreach(line ${MyFile})
         # 读取文件的时候 \\n 会被转换成 " ;"需要替换掉
         string(STRIP "${line}" line)
-        string(REPLACE " ;" "" line "${line}")
+        string(REPLACE ";" "" line "${line}")
         string(REGEX REPLACE "(\t)+" " " line "${line}")
         string(REGEX REPLACE " +" " " line "${line}")
         if( "${line}" MATCHES "^( *)#.*")
