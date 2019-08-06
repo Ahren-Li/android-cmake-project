@@ -1,23 +1,25 @@
 # android-cmake-project
 We can use it to edit the native source code of Android. 
-It can compile c/c++ code and run in your android devices, but the compilation may fail. 
+It can compile your own c/c++ code and run it on your android devices.
 You just need to provide the name of the module. 
 
 - Automatically find the module path
-- Support `if`、`ifeq`、`ifneq`、`strip`、`filter`
+- Android MK Support `if`、`ifeq`、`ifneq`、`strip`、`filter`
 - **Automatically parse Android.mk conversion to cmake configuration**
 - **Automatically parse module's dependencies**
 - **Automatically parse module's include dirs**
 - **Automatically parse module's definitions**
+- Support Android.bp
 
 ### Test environment
-- Android N source tree
+- Android N/P source tree
 - Ubuntu 16.04
-- Windows 10
+- Windows 10(Android.bp is not currently supported)
+- Clion 2018.2.5(CL-182.4892.24)
 
 ### Depend
 - Fully compiled android source tree
-- Linux: ${your android source path}/prebuilts/clang/host/linux-x86/clang-2690385
+- Linux: ${your android source path}/prebuilts/clang/host/linux-x86/clang-xxxxxx
 - Windows: Android NDK
 
 ### .idea
@@ -42,12 +44,22 @@ set(ANDROID_STL c++_static)
 
 |        Property         |   value   | description |
 | ----------------------- | --------- | ----------- |
+|  ANDROID_SDK_VERSION    | string |19-28...    |
 |  ANDROID_LUNCH          | string |your own android lunch target    |
 |  ANDROID_NDK            | android ndk path    |
 |  ANDROID_TARGET_ARCH    | arm/arm64 |lunch target arch    |
 |  ANDROID_ABI            | arm64-v8a/armeabi-v7a | clion complie abi |
 |  ANDROID_TOOLCHAIN_NAME | clang | toolchan, currently only supports clang |
 |  ANDROID_STL            | N/A | future support content |
+|  ANDROID_CLANG_VERSION  | string | clang-4691093(Android p) |
+
+
+| Android Version  | Clang Version |
+| ---------------- | ------------- |
+| Android P | clang-4691093 |
+| Android O | N/A |
+| Android N | clang-2690385 |
+
 
 In CMakeLists.txt
 ```Makefile
@@ -73,15 +85,15 @@ Can help clion compile android native module, but currently only libcutil can be
 ![2](https://www.lili.kim/2018/11/24/android/Use%20CLion%20import%20Android%20code/test2.png)
 
 ### Bugs
-- ~~not support windows~~
+- Android.bp not support windows
 - not support `include xxx.mk` in Android.mk
 - not support make function:`all-makefiles-under` ......
-- not support Android.bp
+- ~~not support Android.bp~~
 
 ### Future support
-- ~~used on Windows~~
+- Android.bp used on Windows
 - support make function
-- Android.bp
+- ~~Android.bp(OK)~~
 
 ### Anyway
-If you have any suggestion or solution, welcome to discuss.
+If you have any suggestion or solution, welcome to discuss.a

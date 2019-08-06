@@ -9,6 +9,7 @@ set(CMAKE_TOOLCHAIN_FILE ${PROJECT_DIR}/android.toolchain.cmake)
 
 include(${PROJECT_DIR}/Cmake/AndroidMK/LoadMoudle.cmake)
 include(${PROJECT_DIR}/Cmake/AndroidMK/Parse.cmake)
+include(${PROJECT_DIR}/Cmake/AndroidBP/Parse.cmake)
 project(Android)
 
 if (ANDROID)
@@ -16,6 +17,11 @@ if (ANDROID)
 endif()
 
 ENABLE_LANGUAGE(ASM)
+set(CMAKE_SHARED_LIBRARY_CREATE_ASM_FLAGS "-E -b ")
+set(CMAKE_ASM_CREATE_SHARED_LIBRARY "ld <CMAKE_SHARED_LIBRARY_CREATE_ASM_FLAGS>
+    <CMAKE_SHARED_LIBRARY_SONAME_ASM_FLAG><TARGET_SONAME>
+    <LINK_FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>")
+
 
 if (ANDROID_DEBUG)
     message("CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES:${CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES}")
@@ -64,6 +70,7 @@ include_directories( SYSTEM
         "${PROJECT_DIR}/bionic/libc/arch-${ANDROID_SYSROOT_ABI}/include"
         "${PROJECT_DIR}/bionic/libc/include"
         "${PROJECT_DIR}/bionic/libc/kernel/uapi"
+        "${PROJECT_DIR}/bionic/libc/kernel/android/uapi"
         "${PROJECT_DIR}/bionic/libc/kernel/common"
         "${PROJECT_DIR}/bionic/libc/kernel/uapi/asm-${ANDROID_SYSROOT_ABI}"
         "${PROJECT_DIR}/bionic/libm/include"
@@ -71,8 +78,9 @@ include_directories( SYSTEM
         )
 
 loadMoudle()
-parseAndroidMK(adbd ${MK_EXECAB})
-parseAndroidMK(init ${MK_EXECAB})
+#parseAndroidMK(libbt-vendor ${MK_SHARED})
+#parseAndroidMK(libvold ${MK_STATIC})
+parseAndroidMK(vold ${MK_EXECAB})
 
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/android-test/CMakeLists.txt)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/android-test)

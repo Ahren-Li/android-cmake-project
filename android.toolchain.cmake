@@ -461,7 +461,8 @@ list(APPEND ANDROID_COMPILER_FLAGS
         -DANDROID
         -D_FORTIFY_SOURCE=2
         -D__compiler_offsetof=__builtin_offsetof
-        -D_USING_LIBCXX)
+        -D_USING_LIBCXX
+        -DPLATFORM_SDK_VERSION=${ANDROID_SDK_VERSION})
 #
 ## for common features
 list(APPEND ANDROID_COMPILER_FLAGS
@@ -492,7 +493,10 @@ if(ANDROID_TOOLCHAIN STREQUAL clang)
   if ("${ANDROID_HOST_TAG}" MATCHES "windows.*")
     set(ANDROID_LLVM_TOOLCHAIN_PREFIX "${ANDROID_NDK}/toolchains/llvm/prebuilt/${ANDROID_HOST_TAG}/bin/")
   else()
-    set(ANDROID_LLVM_TOOLCHAIN_PREFIX "${PROJECT_DIR}/prebuilts/clang/host/${ANDROID_HOST_TAG}/clang-2690385/bin/")
+    if(NOT ANDROID_CLANG_VERSION)
+      set(ANDROID_CLANG_VERSION "clang-2690385")
+    endif()
+    set(ANDROID_LLVM_TOOLCHAIN_PREFIX "${PROJECT_DIR}/prebuilts/clang/host/${ANDROID_HOST_TAG}/${ANDROID_CLANG_VERSION}/bin/")
   endif()
   set(ANDROID_C_COMPILER   "${ANDROID_LLVM_TOOLCHAIN_PREFIX}clang${ANDROID_TOOLCHAIN_SUFFIX}")
   set(ANDROID_CXX_COMPILER "${ANDROID_LLVM_TOOLCHAIN_PREFIX}clang++${ANDROID_TOOLCHAIN_SUFFIX}")
@@ -573,16 +577,20 @@ list(APPEND ANDROID_LINKER_FLAGS
 
 # for standard lib
 list(APPEND ANDROID_LINKER_FLAGS
-        -llog -lc++ -ldl -ldl -lc -lm
+        -lc++ -ldl -lc -lm
         -Wl,--no-whole-archive
         ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libcompiler_rt-extras_intermediates/libcompiler_rt-extras.a
+        ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/${ANDROID_TOOLCHAIN_NAME}/lib64/libatomic.a
+        ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/libgcc.a
         )
 
 list(APPEND ANDROID_LINKER_FLAGS_SHARD
         -Wl,--no-whole-archive
         ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libsigchain_intermediates/libsigchain.a
-        ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/${ANDROID_TOOLCHAIN_NAME}/lib64/libatomic.a
-        ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9/libgcc.a)
+        )
+
+#TODO
+set(ANDROID_CXX_STANDARD_LIBRARIE "-Wl,--no-whole-archive ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/libgcc.a")
 
 list(APPEND ANDROID_LINKER_FLAGS
   -nostdlib
@@ -885,6 +893,9 @@ set(CMAKE_ASM_FLAGS_RELEASE   "${ANDROID_COMPILER_FLAGS_RELEASE} ${CMAKE_ASM_FLA
 set(CMAKE_SHARED_LINKER_FLAGS "${ANDROID_LINKER_FLAGS} ${ANDROID_LINKER_FLAGS_SHARD} ${CMAKE_SHARED_LINKER_FLAGS}")
 set(CMAKE_MODULE_LINKER_FLAGS "${ANDROID_LINKER_FLAGS} ${CMAKE_MODULE_LINKER_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS    "${ANDROID_LINKER_FLAGS} ${ANDROID_LINKER_FLAGS_EXE} ${CMAKE_EXE_LINKER_FLAGS}")
+
+set(CMAKE_C_STANDARD_LIBRARIES ${ANDROID_CXX_STANDARD_LIBRARIE})
+set(CMAKE_CXX_STANDARD_LIBRARIES   ${ANDROID_CXX_STANDARD_LIBRARIE})
 
 # Compatibility for read-only variables.
 # Read-only variables for compatibility with the other toolchain file.

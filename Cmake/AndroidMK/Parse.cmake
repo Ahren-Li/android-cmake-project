@@ -145,15 +145,22 @@ function(parseAndroidMK module_name type)
         message("parseAndroidMK: ${type} ${module_name} not found!")
         return()
     endif()
-    SET(local_path ${PROJECT_DIR}/${path})
-    SET(mk_path ${local_path}/Android.mk)
 
     initEnv()
-    message("AndroidMK:${mk_path}")
+    SET(local_path ${PROJECT_DIR}/${path})
     SET(LOCAL_PATH ${local_path})
+    SET(mk_path ${local_path}/Android.mk)
+    if(NOT EXISTS ${mk_path})
+        parseAndroidBP("${module_name}" "${type}" "${local_path}")
+        return()
+    endif()
+
+    message("AndroidMK:${mk_path}")
+
     if(MK_DEBUG)
         message("LOCAL_PATH:${LOCAL_PATH}")
     endif()
+
     File(STRINGS ${mk_path} MyFile)
 
     set(parseAndroidMK_stop OFF)
@@ -179,6 +186,12 @@ function(parseAndroidMK module_name type)
             break()
         endif()
     endforeach()
+
+    containsMoudle("${module_name}_${type}" is_find)
+    if(NOT is_find)
+        parseAndroidBP("${module_name}" "${type}" "${local_path}")
+        return()
+    endif()
 
     doMoudleDependencies("${module_name}_${type}")
     doExportInclude("${module_name}_${type}")
