@@ -57,7 +57,7 @@ set(ANDROID_STL c++_static)
 | Android Version  | Clang Version |
 | ---------------- | ------------- |
 | Android P | clang-4691093 |
-| Android O | N/A |
+| Android O | clang-4053586 |
 | Android N | clang-2690385 |
 
 
