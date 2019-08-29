@@ -581,16 +581,26 @@ list(APPEND ANDROID_LINKER_FLAGS
         -Wl,--no-whole-archive
         ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libcompiler_rt-extras_intermediates/libcompiler_rt-extras.a
         ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/${ANDROID_TOOLCHAIN_NAME}/lib64/libatomic.a
-        ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/libgcc.a
         )
+
+if(EXISTS ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/libgcc.a)
+  list(APPEND ANDROID_LINKER_FLAGS
+          ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/libgcc.a)
+  #TODO
+  set(ANDROID_CXX_STANDARD_LIBRARIE "-Wl,--no-whole-archive \
+  ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/libgcc.a")
+else()
+  list(APPEND ANDROID_LINKER_FLAGS
+          ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9/libgcc.a)
+  #TODO
+  set(ANDROID_CXX_STANDARD_LIBRARIE "-Wl,--no-whole-archive \
+  ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9/libgcc.a")
+endif()
 
 list(APPEND ANDROID_LINKER_FLAGS_SHARD
         -Wl,--no-whole-archive
         ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libsigchain_intermediates/libsigchain.a
         )
-
-#TODO
-set(ANDROID_CXX_STANDARD_LIBRARIE "-Wl,--no-whole-archive ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/libgcc.a")
 
 list(APPEND ANDROID_LINKER_FLAGS
   -nostdlib
