@@ -85,7 +85,6 @@ Can help clion compile android native module, but currently only libcutil can be
 ![2](https://www.lili.kim/2018/11/24/android/Use%20CLion%20import%20Android%20code/test2.png)
 
 ### Bugs
-- Android.bp not support windows
 - not support `include xxx.mk` in Android.mk
 - not support make function:`all-makefiles-under` ......
 
