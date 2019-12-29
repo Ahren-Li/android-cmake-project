@@ -46,7 +46,7 @@ set(ANDROID_STL c++_static)
 | ----------------------- | --------- | ----------- |
 |  ANDROID_SDK_VERSION    | string |19-28...    |
 |  ANDROID_LUNCH          | string |your own android lunch target    |
-|  ANDROID_NDK            | android ndk path    |
+|  ANDROID_NDK            | path   | android ndk path |
 |  ANDROID_TARGET_ARCH    | arm/arm64 |lunch target arch    |
 |  ANDROID_ABI            | arm64-v8a/armeabi-v7a | clion complie abi |
 |  ANDROID_TOOLCHAIN_NAME | clang | toolchan, currently only supports clang |
