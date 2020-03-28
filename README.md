@@ -14,8 +14,8 @@ You just need to provide the name of the module.
 ### Test environment
 - Android N/P source tree
 - Ubuntu 16.04
-- Windows 10(Android.bp is not currently supported)
-- Clion 2018.2.5(CL-182.4892.24)
+- Windows 10
+- Clion 2019.3.2
 
 ### Depend
 - Fully compiled android source tree
@@ -46,7 +46,7 @@ set(ANDROID_STL c++_static)
 | ----------------------- | --------- | ----------- |
 |  ANDROID_SDK_VERSION    | string |19-28...    |
 |  ANDROID_LUNCH          | string |your own android lunch target    |
-|  ANDROID_NDK            | android ndk path    |
+|  ANDROID_NDK            | path   | android ndk path |
 |  ANDROID_TARGET_ARCH    | arm/arm64 |lunch target arch    |
 |  ANDROID_ABI            | arm64-v8a/armeabi-v7a | clion complie abi |
 |  ANDROID_TOOLCHAIN_NAME | clang | toolchan, currently only supports clang |
@@ -85,15 +85,11 @@ Can help clion compile android native module, but currently only libcutil can be
 ![2](https://www.lili.kim/2018/11/24/android/Use%20CLion%20import%20Android%20code/test2.png)
 
 ### Bugs
-- Android.bp not support windows
 - not support `include xxx.mk` in Android.mk
 - not support make function:`all-makefiles-under` ......
-- ~~not support Android.bp~~
 
 ### Future support
-- Android.bp used on Windows
 - support make function
-- ~~Android.bp(OK)~~
 
 ### Anyway
 If you have any suggestion or solution, welcome to discuss.a
