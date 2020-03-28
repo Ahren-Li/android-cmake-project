@@ -384,12 +384,11 @@ list(APPEND CMAKE_FIND_ROOT_PATH "${PROJECT_DIR}/bionic/libc")
 #set(ANDROID_SYSTEM_LIBRARY_PATH
 #  "${ANDROID_NDK}/platforms/${ANDROID_PLATFORM}/arch-${ANDROID_SYSROOT_ABI}")
 if(ANDROID_SYSROOT_ABI STREQUAL arm)
-set(ANDROID_SYSTEM_LIBRARY_PATH
-  "${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/symbols/system/lib")
+  set(ANDROID_LIBDIR_NAME lib)
 else()
-  set(ANDROID_SYSTEM_LIBRARY_PATH
-          "${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/symbols/system/lib64")
+  set(ANDROID_LIBDIR_NAME lib64)
 endif()
+set(ANDROID_SYSTEM_LIBRARY_PATH "${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/symbols/system/${ANDROID_LIBDIR_NAME}")
 #list(APPEND ANDROID_LINKER_FLAGS "--sysroot ${ANDROID_SYSTEM_LIBRARY_PATH}")
 
 # find_library searches a handful of paths as described by
@@ -580,7 +579,7 @@ list(APPEND ANDROID_LINKER_FLAGS
         -lc++ -ldl -lc -lm
         -Wl,--no-whole-archive
         ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH}/${ANDROID_OBJ_DIR}/STATIC_LIBRARIES/libcompiler_rt-extras_intermediates/libcompiler_rt-extras.a
-        ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/${ANDROID_TOOLCHAIN_NAME}/lib64/libatomic.a
+        ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/${ANDROID_TOOLCHAIN_NAME}/${ANDROID_LIBDIR_NAME}/libatomic.a
         )
 
 if(EXISTS ${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_NAME}-4.9/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9.x/libgcc.a)
