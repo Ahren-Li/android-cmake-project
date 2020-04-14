@@ -10,6 +10,7 @@ set(CMAKE_TOOLCHAIN_FILE ${PROJECT_DIR}/android.toolchain.cmake)
 include(${PROJECT_DIR}/Cmake/AndroidMK/LoadMoudle.cmake)
 include(${PROJECT_DIR}/Cmake/AndroidMK/Parse.cmake)
 include(${PROJECT_DIR}/Cmake/AndroidBP/Parse.cmake)
+
 project(Android)
 
 if (ANDROID)
@@ -22,7 +23,10 @@ set(CMAKE_ASM_CREATE_SHARED_LIBRARY "ld <CMAKE_SHARED_LIBRARY_CREATE_ASM_FLAGS>
     <CMAKE_SHARED_LIBRARY_SONAME_ASM_FLAG><TARGET_SONAME>
     <LINK_FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>")
 
-
+message(lili:${CMAKE_CXX_CREATE_STATIC_LIBRARY})
+message(lili:${CMAKE_C_LINK_EXECUTABLE})
+message(lili:${FLAGS})
+message(lili:${CMAKE_CXX_CREATE_SHARED_LIBRARY})
 if (ANDROID_DEBUG)
     message("CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES:${CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES}")
     message("CMAKE_CXX_INCLUDE_WHAT_YOU_USE:${CMAKE_CXX_INCLUDE_WHAT_YOU_USE}")
@@ -80,7 +84,7 @@ include_directories( SYSTEM
 loadMoudle()
 #parseAndroidMK(libbt-vendor ${MK_SHARED})
 #parseAndroidMK(libvold ${MK_STATIC})
-parseAndroidMK(vold ${MK_EXECAB})
+#parseAndroidMK(vold ${MK_EXECAB})
 
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/android-test/CMakeLists.txt)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/android-test)

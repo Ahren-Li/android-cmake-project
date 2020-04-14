@@ -1,0 +1,206 @@
+# Copyright (C) 2020 Ahren liliorg@163.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+cmake_minimum_required(VERSION 3.6.0)
+
+set(CMAKE_SYSTEM_VERSION 1)
+
+file(TO_CMAKE_PATH "${PROJECT_DIR}" PROJECT_DIR)
+
+# ################################
+if(ANDROID_NDK_TOOLCHAIN_INCLUDED)
+    return()
+endif(ANDROID_NDK_TOOLCHAIN_INCLUDED)
+set(ANDROID_NDK_TOOLCHAIN_INCLUDED true)
+# ################################
+
+if(NOT ANDROID_ABI)
+set(ANDROID_ABI "armeabi-v7a with NEON")
+endif()
+
+
+# Standard cross-compiling stuff.
+set(ANDROID TRUE)
+set(CMAKE_SYSTEM_NAME Android)
+
+# Allow users to override these values in case they want more strict behaviors.
+# For example, they may want to prevent the NDK's libz from being picked up so
+# they can use their own.
+# https://github.com/android-ndk/ndk/issues/517
+if(NOT CMAKE_FIND_ROOT_PATH_MODE_PROGRAM)
+    set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+endif()
+
+if(NOT CMAKE_FIND_ROOT_PATH_MODE_LIBRARY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+endif()
+
+if(NOT CMAKE_FIND_ROOT_PATH_MODE_INCLUDE)
+    set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+endif()
+
+if(NOT CMAKE_FIND_ROOT_PATH_MODE_PACKAGE)
+    set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+endif()
+
+# ABI
+set(CMAKE_ANDROID_ARCH_ABI ${ANDROID_ABI})
+if(ANDROID_ABI MATCHES "^armeabi(-v7a)?$")
+    set(ANDROID_SYSROOT_ABI arm)
+    set(ANDROID_TOOLCHAIN_NAME arm-linux-androideabi)
+    set(ANDROID_TOOLCHAIN_ROOT ${ANDROID_TOOLCHAIN_NAME})
+    set(ANDROID_HEADER_TRIPLE arm-linux-androideabi)
+    if(ANDROID_ABI STREQUAL armeabi)
+        message(WARNING "armeabi is deprecated and will be removed in a future NDK release.")
+        set(CMAKE_SYSTEM_PROCESSOR armv5te)
+        set(ANDROID_LLVM_TRIPLE armv5te-none-linux-androideabi)
+    elseif(ANDROID_ABI STREQUAL armeabi-v7a)
+        set(CMAKE_SYSTEM_PROCESSOR armv7-a)
+        set(ANDROID_LLVM_TRIPLE armv7-none-linux-androideabi)
+    endif()
+elseif(ANDROID_ABI STREQUAL arm64-v8a)
+    set(ANDROID_SYSROOT_ABI arm64)
+    set(CMAKE_SYSTEM_PROCESSOR aarch64)
+    set(ANDROID_TOOLCHAIN_NAME aarch64-linux-android)
+    set(ANDROID_TOOLCHAIN_ROOT ${ANDROID_TOOLCHAIN_NAME})
+    set(ANDROID_LLVM_TRIPLE aarch64-none-linux-android)
+    set(ANDROID_HEADER_TRIPLE aarch64-linux-android)
+elseif(ANDROID_ABI STREQUAL x86)
+    set(ANDROID_SYSROOT_ABI x86)
+    set(CMAKE_SYSTEM_PROCESSOR i686)
+    set(ANDROID_TOOLCHAIN_NAME i686-linux-android)
+    set(ANDROID_TOOLCHAIN_ROOT ${ANDROID_ABI})
+    set(ANDROID_LLVM_TRIPLE i686-none-linux-android)
+    set(ANDROID_HEADER_TRIPLE i686-linux-android)
+elseif(ANDROID_ABI STREQUAL x86_64)
+    set(ANDROID_SYSROOT_ABI x86_64)
+    set(CMAKE_SYSTEM_PROCESSOR x86_64)
+    set(ANDROID_TOOLCHAIN_NAME x86_64-linux-android)
+    set(ANDROID_TOOLCHAIN_ROOT ${ANDROID_ABI})
+    set(ANDROID_LLVM_TRIPLE x86_64-none-linux-android)
+    set(ANDROID_HEADER_TRIPLE x86_64-linux-android)
+elseif(ANDROID_ABI STREQUAL mips)
+    set(ANDROID_SYSROOT_ABI mips)
+    set(CMAKE_SYSTEM_PROCESSOR mips)
+    set(ANDROID_TOOLCHAIN_NAME mips64el-linux-android)
+    set(ANDROID_TOOLCHAIN_ROOT ${ANDROID_TOOLCHAIN_NAME})
+    set(ANDROID_LLVM_TRIPLE mipsel-none-linux-android)
+    set(ANDROID_HEADER_TRIPLE mipsel-linux-android)
+elseif(ANDROID_ABI STREQUAL mips64)
+    set(ANDROID_SYSROOT_ABI mips64)
+    set(CMAKE_SYSTEM_PROCESSOR mips64)
+    set(ANDROID_TOOLCHAIN_NAME mips64el-linux-android)
+    set(ANDROID_TOOLCHAIN_ROOT ${ANDROID_TOOLCHAIN_NAME})
+    set(ANDROID_LLVM_TRIPLE mips64el-none-linux-android)
+    set(ANDROID_HEADER_TRIPLE mips64el-linux-android)
+else()
+    message(FATAL_ERROR "Invalid Android ABI: ${ANDROID_ABI}.")
+endif()
+
+if(ANDROID_SYSROOT_ABI STREQUAL arm)
+    set(ANDROID_LIBDIR_NAME lib)
+    if(ANDROID_TARGET_ARCH STREQUAL arm64)
+        set(ANDROID_OBJ_DIR obj_arm)
+    endif()
+else()
+    set(ANDROID_LIBDIR_NAME lib64)
+    set(ANDROID_OBJ_DIR obj)
+    if(ANDROID_TARGET_ARCH STREQUAL arm)
+        message(FATAL_ERROR "android ANDROID_TARGET_ARCH=arm, but ANDROID_ABI=arm64-v8a")
+    endif()
+endif()
+
+###########################################################################################################
+
+set(ANDROID_COMPILER_FLAGS)
+set(ANDROID_COMPILER_FLAGS_CXX)
+set(ANDROID_COMPILER_FLAGS_DEBUG)
+set(ANDROID_COMPILER_FLAGS_RELEASE)
+set(ANDROID_LINKER_FLAGS)
+set(ANDROID_LINKER_FLAGS_EXE)
+SET(ANDROID_LINKER_FLAGS_SHARD)
+
+# Don't re-export libgcc symbols in every binary.
+list(APPEND ANDROID_LINKER_FLAGS -Wl,--exclude-libs,libgcc.a)
+list(APPEND ANDROID_LINKER_FLAGS -Wl,--exclude-libs,libatomic.a)
+
+# STL.
+set(ANDROID_STL_STATIC_LIBRARIES)
+set(ANDROID_STL_SHARED_LIBRARIES)
+
+# out
+set(ANDROID_TARGET_OUT_DIR ${PROJECT_DIR}/out/target/product/${ANDROID_LUNCH})
+
+# Behavior of CMAKE_SYSTEM_LIBRARY_PATH and CMAKE_LIBRARY_PATH are really weird
+# when CMAKE_SYSROOT is set. The library path is appended to the sysroot even if
+# the library path is an abspath. Using a relative path from the sysroot doesn't
+# work either, because the relative path is abspath'd relative to the current
+# CMakeLists.txt file before being appended :(
+#
+# We can try to get out of this problem by providing another root path for cmake
+# to check. CMAKE_FIND_ROOT_PATH is intended for this purpose:
+# https://cmake.org/cmake/help/v3.8/variable/CMAKE_FIND_ROOT_PATH.html
+#
+# In theory this should just be our sysroot, but since we don't have a single
+# sysroot that is correct (there's only one set of headers, but multiple
+# locations for libraries that need to be handled differently).  Some day we'll
+# want to move all the libraries into ${ANDROID_NDK}/sysroot, but we'll need to
+# make some fixes to Clang, various build systems, and possibly CMake itself to
+# get that working.
+list(APPEND CMAKE_FIND_ROOT_PATH "${PROJECT_DIR}/bionic/libc")
+
+# We need different sysroots for linking and compiling, but cmake doesn't
+# support that. Pass the sysroot flag manually when linking.
+set(ANDROID_SYSTEM_LIBRARY_PATH "${ANDROID_TARGET_OUT_DIR}/symbols/system/${ANDROID_LIBDIR_NAME}")
+
+# find_library searches a handful of paths as described by
+# https://cmake.org/cmake/help/v3.6/command/find_library.html.  Since libraries
+# are per-API level and headers aren't, We don't have libraries in the
+# CMAKE_SYSROOT. Set up CMAKE_SYSTEM_LIBRARY_PATH
+# (https://cmake.org/cmake/help/v3.6/variable/CMAKE_SYSTEM_LIBRARY_PATH.html)
+# instead.
+#
+# NB: The suffix is just lib here instead of dealing with lib64 because
+# apparently CMake does some automatic rewriting of that? I've been testing by
+# building my own CMake with a bunch of logging added, and that seems to be the
+# case.
+list(APPEND CMAKE_SYSTEM_LIBRARY_PATH "${ANDROID_SYSTEM_LIBRARY_PATH}")
+
+# Toolchain.
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
+    set(ANDROID_HOST_TAG linux-x86)
+    elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL Darwin)
+      set(ANDROID_HOST_TAG darwin-x86_64)
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+    set(ANDROID_HOST_TAG windows-x86_64)
+    set(ANDROID_TOOLCHAIN_SUFFIX .exe)
+    if(NOT ANDROID_NDK)
+        message(FATAL_ERROR "Android NDK not set!")
+        return()
+    endif()
+endif()
+
+set(ANDROID_TOOLCHAIN_ROOT "${PROJECT_DIR}/prebuilts/gcc/${ANDROID_HOST_TAG}/${ANDROID_TOOLCHAIN_ABI}/${ANDROID_TOOLCHAIN_ROOT}-4.9/")
+if ("${ANDROID_HOST_TAG}" MATCHES "windows.*")
+    set(ANDROID_TOOLCHAIN_ROOT "${ANDROID_NDK}/toolchains/${ANDROID_TOOLCHAIN_ROOT}-4.9/prebuilt/${ANDROID_HOST_TAG}/")
+endif ()
+set(ANDROID_TOOLCHAIN_PREFIX "${ANDROID_TOOLCHAIN_ROOT}/bin/${ANDROID_TOOLCHAIN_NAME}-")
+
+################flag
+include(android.flag.cmake)
+
+
+
+
+

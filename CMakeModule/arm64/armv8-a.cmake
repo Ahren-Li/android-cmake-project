@@ -1,0 +1,5 @@
+if(ANDROID_CPU_VARIANT STREQUAL cortex-a53)
+	set(ARCH_VARIANT_CLFAGS -mcpu=cortex-a53)
+else()
+	set(ARCH_VARIANT_CLFAGS -mcpu=cortex-a53)
+endif()
