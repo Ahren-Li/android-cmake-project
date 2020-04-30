@@ -1,0 +1,1 @@
+parseAndroidMK(libsurfaceflinger ${MK_SHARED})

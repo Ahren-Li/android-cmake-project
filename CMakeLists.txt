@@ -1,15 +1,10 @@
 cmake_minimum_required(VERSION 3.6.0-rc2)
 
-SET(ANDROID_DEBUG OFF)
-
+SET(ANDROID_TEST_MODE OFF)
 SET(PROJECT_DIR "${CMAKE_HOME_DIRECTORY}")
-include(${PROJECT_DIR}/env_android.cmake)
-
-set(CMAKE_TOOLCHAIN_FILE ${PROJECT_DIR}/android.toolchain.cmake)
-
-include(${PROJECT_DIR}/Cmake/AndroidMK/LoadMoudle.cmake)
-include(${PROJECT_DIR}/Cmake/AndroidMK/Parse.cmake)
-include(${PROJECT_DIR}/Cmake/AndroidBP/Parse.cmake)
+include(CMakeModule/android.env.cmake)
+include(CMakeModule/android.func.cmake)
+set(CMAKE_TOOLCHAIN_FILE ${PROJECT_DIR}/CMakeModule/android.toolchain.cmake)
 
 project(Android)
 
@@ -18,43 +13,8 @@ if (ANDROID)
 endif()
 
 ENABLE_LANGUAGE(ASM)
-set(CMAKE_SHARED_LIBRARY_CREATE_ASM_FLAGS "-E -b ")
-set(CMAKE_ASM_CREATE_SHARED_LIBRARY "ld <CMAKE_SHARED_LIBRARY_CREATE_ASM_FLAGS>
-    <CMAKE_SHARED_LIBRARY_SONAME_ASM_FLAG><TARGET_SONAME>
-    <LINK_FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>")
 
-message(lili:${CMAKE_CXX_CREATE_STATIC_LIBRARY})
-message(lili:${CMAKE_C_LINK_EXECUTABLE})
-message(lili:${FLAGS})
-message(lili:${CMAKE_CXX_CREATE_SHARED_LIBRARY})
-if (ANDROID_DEBUG)
-    message("CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES:${CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES}")
-    message("CMAKE_CXX_INCLUDE_WHAT_YOU_USE:${CMAKE_CXX_INCLUDE_WHAT_YOU_USE}")
-    message("CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES:${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}")
-    message("CMAKE_SYSROOT:${CMAKE_SYSROOT}")
-
-
-    message(CMAKE_SYSROOT      ${CMAKE_SYSROOT})
-    message(CMAKE_SYSROOT_COMPILE      ${CMAKE_SYSROOT_COMPILE})
-    message(CMAKE_C_LINK_EXECUTABLE      ${CMAKE_C_LINK_EXECUTABLE})
-    message(CMAKE_C_COMPILER        ${CMAKE_C_COMPILER})
-    message(CMAKE_CXX_COMPILER      ${CMAKE_CXX_COMPILER})
-    message(CMAKE_AR                ${CMAKE_AR})
-
-    message(CMAKE_C_FLAGS             ${CMAKE_C_FLAGS})
-    message(CMAKE_CXX_FLAGS           ${CMAKE_CXX_FLAGS})
-    message(CMAKE_ASM_FLAGS           ${CMAKE_ASM_FLAGS})
-    message(CMAKE_C_FLAGS_DEBUG       ${CMAKE_C_FLAGS_DEBUG})
-    message(CMAKE_CXX_FLAGS_DEBUG     ${CMAKE_CXX_FLAGS_DEBUG})
-    message(CMAKE_ASM_FLAGS_DEBUG     ${CMAKE_ASM_FLAGS_DEBUG})
-    message(CMAKE_C_FLAGS_RELEASE     ${CMAKE_C_FLAGS_RELEASE})
-    message(CMAKE_CXX_FLAGS_RELEASE   ${CMAKE_CXX_FLAGS_RELEASE})
-    message(CMAKE_ASM_FLAGS_RELEASE   ${CMAKE_ASM_FLAGS_RELEASE})
-    message(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS})
-    message(CMAKE_MODULE_LINKER_FLAGS ${CMAKE_MODULE_LINKER_FLAGS})
-    message(CMAKE_EXE_LINKER_FLAGS    ${CMAKE_EXE_LINKER_FLAGS})
-endif()
-include_directories(
+include_directories( SYSTEM
         ${PROJECT_DIR}/libnativehelper/include/nativehelper
         ${PROJECT_DIR}/external/libcxx/include
         ${PROJECT_DIR}/external/libcxxabi/include
@@ -81,10 +41,9 @@ include_directories( SYSTEM
         "${PROJECT_DIR}/bionic/libm/include/${ANDROID_SYSROOT_ABI}"
         )
 
-loadMoudle()
-#parseAndroidMK(libbt-vendor ${MK_SHARED})
-#parseAndroidMK(libvold ${MK_STATIC})
-#parseAndroidMK(vold ${MK_EXECAB})
+if(NOT ANDROID_TEST_MODE)
+    include(CMakeModule/android.module.cmake)
+endif()
 
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/android-test/CMakeLists.txt)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/android-test)

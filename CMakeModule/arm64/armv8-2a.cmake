@@ -1,4 +1,4 @@
-set(ARCH_VARIANT_CLFAGS -march=armv8-a)
+set(ARCH_VARIANT_CLFAGS -march=armv8.2a)
 set(ARCH_VARIANT_LDLFAGS
 		-Wl,-m,aarch64_elf64_le_vec
 		-Wl,--hash-style=gnu
