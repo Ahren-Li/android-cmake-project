@@ -1,72 +1,63 @@
 # android-cmake-project
-We can use it to edit the native source code of Android. 
-It can compile your own c/c++ code and run it on your android devices.
-You just need to provide the name of the module. 
 
-- Automatically find the module path
-- Android MK Support `if`、`ifeq`、`ifneq`、`strip`、`filter`
-- **Automatically parse Android.mk conversion to cmake configuration**
-- **Automatically parse module's dependencies**
-- **Automatically parse module's include dirs**
-- **Automatically parse module's definitions**
-- Support Android.bp
+We can read and modify android native C/C++ code through this project.
+We can compile our own Android C/C++ code to run on Android devices.
+Of course, all of this is based on CLion, thanks to the CLion team.
 
-### Test environment
-- Android N/P source tree
+* Automatically finds the path to the module.
+* Automatically parses the module's android.mk or android.bp file.
+* Automatic resolution of module dependencies.
+* Automatically adds the module and its dependent module's C/C++ source files.
+* So you can use CLion's auto-jump feature. This is a great help for us to read the code.
+* I configured toolchian to compile our own C/C++ programs and to rely on Android's native libraries.
+
+For Android.mk:
+* Only simple built-in functions for makefiles are supported
+
+For Android.bp:
+* Some bp file styles are not supported.
+
+May later use `soong` to solve these problems.
+
+## Test Environment
+- Android N/O/P source tree
 - Ubuntu 16.04
 - Windows 10
 - Clion 2019.3.2
 
-### Depend
+## Depend
 - Fully compiled android source tree
 - Linux: ${your android source path}/prebuilts/clang/host/linux-x86/clang-xxxxxx
 - Windows: Android NDK
 
-### .idea
+## Description
+* .idea
 I ignored some folders by default. They defined in .idea/misc.xml.
-Because most files are ignored. So CLion is working perfectly.
 
-### env_android.cmake
-Define your own Android environment.
-
-### How to use it
-Copy or link all file  to your `[Android Source Code]`,  and configure your own environment
-for example:
-```makefile
-#env_android.cmake
-set(ANDROID_LUNCH rk3399_box)
-set(ANDROID_NDK "Your NDK path")
-set(ANDROID_TARGET_ARCH arm64)
-set(ANDROID_ABI "arm64-v8a")
-set(ANDROID_TOOLCHAIN_NAME "clang")
-set(ANDROID_STL c++_static)
+## How to use it
+### 
+```bash
+cp -r $(path)/android-cmake-project/.idea $(android_source_tree)/
+ln -s $(path)/android-cmake-project/CMakeModule $(android_source_tree)/CMakeModule
+ln -s $(path)/android-cmake-project/CMakeLists.txt $(android_source_tree)/CMakeLists.txt
 ```
+### Configure your own environment
+android-cmake-project/CMakeModule/android.env.cmake
 
 |        Property         |   value   | description |
 | ----------------------- | --------- | ----------- |
-|  ANDROID_SDK_VERSION    | string |19-28...    |
-|  ANDROID_LUNCH          | string |your own android lunch target    |
-|  ANDROID_NDK            | path   | android ndk path |
-|  ANDROID_TARGET_ARCH    | arm/arm64 |lunch target arch    |
-|  ANDROID_ABI            | arm64-v8a/armeabi-v7a | clion complie abi |
-|  ANDROID_TOOLCHAIN_NAME | clang | toolchan, currently only supports clang |
-|  ANDROID_STL            | N/A | future support content |
-|  ANDROID_CLANG_VERSION  | string | clang-4691093(Android p) |
+|  TARGET_BOARD_HARDWARE  |  string   | Fill in the string you got through `get_build_var` |
+|  ANDROID_LUNCH          |  string   | Your own android `lunch` target    |
+|  ANDROID_SDK_VERSION    |  string   | 19-28...    |
+|  ANDROID_TARGET_ARCH    | arm/arm64 | lunch target `arch`    |
+|  ANDROID_ABI            | arm64-v8a/armeabi-v7a | Compile to generate binary abi |
+|  ANDROID_NDK            | path      | android ndk path |
+|  ANDROID_CLANG_VERSION  | string    | clang-4691093(Android p) |
 
-
-| Android Version  | Clang Version |
-| ---------------- | ------------- |
-| Android P | clang-4691093 |
-| Android O | clang-4053586 |
-| Android N | clang-2690385 |
-
-
-In CMakeLists.txt
-```Makefile
-# init all module
-loadMoudle()
-# load adbd(EXECABLE) and its dependencies
-parseAndroidMK(adbd ${MK_EXECAB})
+android-cmake-project/CMakeModule/android.module.cmake
+```cmake
+# load libsurfaceflinger(SHARED LIB) and its dependencies
+parseAndroidMK(libsurfaceflinger ${MK_SHARED})
 # load init(EXECABLE) and its dependencies
 parseAndroidMK(init ${MK_EXECAB})
 ```
@@ -76,20 +67,8 @@ parseAndroidMK(init ${MK_EXECAB})
 |    MK_SHARED    |   string of shared libs target |
 |    MK_STATIC    |   string of static libs target |
 
-### Why do you need it
-
-It can help clion complete function relation jump mapping.
-
+## Why do you need it
+It can help CLion to generate the file map correctly.
 ![pic](https://www.lili.kim/2018/11/24/android/Use%20CLion%20import%20Android%20code/test.png)
-Can help clion compile android native module, but currently only libcutil can be compiled, because we need to configure the dependencies of each module.
+It can conveniently help us develop our own Android Native Service.
 ![2](https://www.lili.kim/2018/11/24/android/Use%20CLion%20import%20Android%20code/test2.png)
-
-### Bugs
-- not support `include xxx.mk` in Android.mk
-- not support make function:`all-makefiles-under` ......
-
-### Future support
-- support make function
-
-### Anyway
-If you have any suggestion or solution, welcome to discuss.a
