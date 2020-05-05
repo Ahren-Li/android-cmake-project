@@ -250,6 +250,7 @@ if(ANDROID_ABI STREQUAL "x86" OR ANDROID_ABI STREQUAL "x86_64")
     set(CMAKE_ASM_NASM_COMPILER_ARG1 "-DELF")
 endif()
 
+include(${CMAKE_CURRENT_LIST_DIR}/android.func.cmake)
 ################flag
 include(${CMAKE_CURRENT_LIST_DIR}/android.flag.cmake)
 
