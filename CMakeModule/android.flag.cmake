@@ -133,8 +133,15 @@ set(ANDROID_GLOBAL_EXE_LINK_FLAGS
         -Wl,-rpath-link=${ANDROID_GLOBAL_LD_DIRS}
         -L${ANDROID_GLOBAL_LD_DIRS}
         )
+set(ANDROID_GLOBAL_SHARED_LINK_FLAGS
+        -shared -nostdlib -Wl,--gc-sections
+        -Wl,-rpath-link=${ANDROID_GLOBAL_LD_DIRS}
+        -L${ANDROID_GLOBAL_LD_DIRS}
+        )
 set(ANDROID_CRTBEGIN_DYNAMIC_O ${ANDROID_GLOBAL_LD_DIRS}/crtbegin_dynamic.o)
 set(ANDROID_CRTEND_O ${ANDROID_GLOBAL_LD_DIRS}/crtend_android.o)
+set(ANDROID_CRTBEGIN_SO ${ANDROID_GLOBAL_LD_DIRS}/crtbegin_so.o)
+set(ANDROID_CRTEND_SO ${ANDROID_GLOBAL_LD_DIRS}/crtend_so.o)
 staticLibDir(clang_rt.ubsan_minimal-aarch64-android clang_rt_static_lib)
 staticLibDir(compiler_rt-extras compiler_rt_static_lib)
 staticLibDir(atomic atomic_static_lib)
@@ -191,6 +198,10 @@ set(ANDROID_COMPILER_FLAGS_DEBUG ${TARGET_DEBUG_CFLAGS})
 set(ANDROID_LINKER_FLAGS_EXE
         ${ANDROID_GLOBAL_EXE_LINK_FLAGS}
         ${ANDROID_CRTBEGIN_DYNAMIC_O}
+        )
+set(ANDROID_LINKER_FLAGS_SHARED
+        ${ANDROID_GLOBAL_SHARED_LINK_FLAGS}
+        ${ANDROID_CRTBEGIN_SO}
         )
 set(ANDROID_LDFLAGS_EXE
         -Wl,--no-whole-archive
