@@ -13,6 +13,8 @@ elseif(ANDROID_CPU_VARIANT MATCHES "exynos-m1")
 	list(APPEND ARCH_VARIANT_CLFAGS -mcpu=exynos-m1)
 elseif(ANDROID_CPU_VARIANT MATCHES "exynos-m2")
 	list(APPEND ARCH_VARIANT_CLFAGS -mcpu=exynos-m2)
+else()
+	list(APPEND ARCH_VARIANT_CLFAGS -mcpu=cortex-a53)
 endif()
 
 list(APPEND ARCH_VARIANT_LDLFAGS -Wl,--fix-cortex-a53-843419)

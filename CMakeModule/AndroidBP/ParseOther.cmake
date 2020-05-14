@@ -70,7 +70,7 @@ endfunction()
 
 function(parseOtherBP parseOtherBP_path)
     message("OtherBP:${parseOtherBP_path}")
-    execute_process(COMMAND ${PROJECT_DIR}/Cmake/AndroidBP/rm_comment ${parseOtherBP_path} OUTPUT_VARIABLE parseOtherBP_MyFile)
+    execute_process(COMMAND ${PROJECT_DIR}/CMakeModule/AndroidBP/rm_comment ${parseOtherBP_path} OUTPUT_VARIABLE parseOtherBP_MyFile)
     STRING(REGEX REPLACE ";" "\\\\;" parseOtherBP_MyFile "${parseOtherBP_MyFile}")
     STRING(REGEX REPLACE "\n" ";" parseOtherBP_MyFile "${parseOtherBP_MyFile}")
 

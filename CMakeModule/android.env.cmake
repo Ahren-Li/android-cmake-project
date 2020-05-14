@@ -5,6 +5,7 @@ set(TARGET_BOARD_HARDWARE rk30board )
 set(ANDROID_LUNCH rk3399)
 set(ANDROID_SDK_VERSION 28)
 set(ANDROID_TARGET_ARCH arm64)
+set(ANDROID_CPU_VARIANT "cortex-a53")
 
 ######### build abi
 #set(ANDROID_ABI "armeabi-v7a")
