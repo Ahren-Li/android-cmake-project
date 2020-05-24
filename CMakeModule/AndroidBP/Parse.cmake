@@ -254,7 +254,11 @@ function(parseAndroidBP module_name type path)
     SET(bp_path ${path}/Android.bp)
     message("AndroidBP:${bp_path}")
     ## Rm android.bp comment.
-    execute_process(COMMAND ${PROJECT_DIR}/CMakeModule/AndroidBP/rm_comment ${bp_path} OUTPUT_VARIABLE MyFile)
+    if(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+        execute_process(COMMAND ${PROJECT_DIR}/CMakeModule/AndroidBP/rm_comment.exe ${bp_path} OUTPUT_VARIABLE MyFile)
+    else()
+        execute_process(COMMAND ${PROJECT_DIR}/CMakeModule/AndroidBP/rm_comment ${bp_path} OUTPUT_VARIABLE MyFile)
+    endif()
     STRING(REGEX REPLACE ";" "\\\\;" MyFile "${MyFile}")
     ## Read line android.bp.
     STRING(REGEX REPLACE "\n" ";" MyFile "${MyFile}")

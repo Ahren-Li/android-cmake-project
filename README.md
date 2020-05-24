@@ -22,7 +22,7 @@ May later use `soong` to solve these problems.
 ## Test Environment
 - Android N/O/P source tree
 - Ubuntu 16.04
-- Windows 10
+- Windows 10 && Android NDK R21
 - Clion 2019.3.2
 
 ## Depend
@@ -31,7 +31,7 @@ May later use `soong` to solve these problems.
 - Windows: Android NDK
 
 ## Description
-* .idea
+* .idea  
 I ignored some folders by default. They defined in .idea/misc.xml.
 
 ## How to use it
