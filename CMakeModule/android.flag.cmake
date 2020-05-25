@@ -112,9 +112,16 @@ set(COMMON_TARGET_CFLAGS_NO_OVERRIDE
         -Werror=address-of-temporary
         -Werror=null-dereference
         -Werror=return-type
-        -Wno-tautological-constant-compare
-        -Wno-null-pointer-arithmetic
-        -Wno-enum-compare -Wno-enum-compare-switch)
+        -Wno-enum-compare
+        )
+
+if(${ANDROID_SDK_VERSION} GREATER_EQUAL 28)
+    list(APPEND COMMON_TARGET_CFLAGS_NO_OVERRIDE
+            -Wno-tautological-constant-compare
+            -Wno-null-pointer-arithmetic
+            -Wno-enum-compare-switch
+            )
+endif()
 
 #######################################################################
 if(ANDROID_SYSROOT_ABI STREQUAL arm64)
