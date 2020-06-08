@@ -89,7 +89,9 @@ list(APPEND CLANG_CONFIG_EXTRA_CFLAGS -Wno-format-pedantic)
 # Workaround for ccache with clang.
 # See http://petereisentraut.blogspot.com/2011/05/ccache-and-clang.html.
 list(APPEND CLANG_CONFIG_EXTRA_CFLAGS -Wno-unused-command-line-argument)
+if(${ANDROID_SDK_VERSION} GREATER_EQUAL 27)
 list(APPEND CLANG_CONFIG_EXTRA_CFLAGS -Wno-expansion-to-defined)
+endif()
 list(APPEND CLANG_CONFIG_EXTRA_CFLAGS -ffunction-sections)
 list(APPEND CLANG_CONFIG_EXTRA_CFLAGS -fdata-sections)
 list(APPEND CLANG_CONFIG_EXTRA_CFLAGS -fno-short-enums -funwind-tables -fstack-protector-strong)
@@ -149,17 +151,26 @@ set(ANDROID_CRTBEGIN_DYNAMIC_O ${ANDROID_GLOBAL_LD_DIRS}/crtbegin_dynamic.o)
 set(ANDROID_CRTEND_O ${ANDROID_GLOBAL_LD_DIRS}/crtend_android.o)
 set(ANDROID_CRTBEGIN_SO ${ANDROID_GLOBAL_LD_DIRS}/crtbegin_so.o)
 set(ANDROID_CRTEND_SO ${ANDROID_GLOBAL_LD_DIRS}/crtend_so.o)
-staticLibDir(clang_rt.ubsan_minimal-aarch64-android clang_rt_static_lib)
-staticLibDir(compiler_rt-extras compiler_rt_static_lib)
-staticLibDir(atomic atomic_static_lib)
-staticLibDir(gcc gcc_static_lib)
 
+staticLibDir(compiler_rt-extras compiler_rt_static_lib)
 set(ANDROID_NEED_STATIC_LIBRARIES ${compiler_rt_static_lib})
-if(${ANDROID_SDK_VERSION} GREATER_EQUAL 28)
-    list(APPEND ANDROID_NEED_STATIC_LIBRARIES ${clang_rt_static_lib})
+
+if(${ANDROID_SDK_VERSION} GREATER_EQUAL 27)
+    if(${ANDROID_SDK_VERSION} GREATER_EQUAL 28)
+        staticLibDir(clang_rt.ubsan_minimal-aarch64-android clang_rt_static_lib)
+        list(APPEND ANDROID_NEED_STATIC_LIBRARIES ${clang_rt_static_lib})
+    endif()
+    staticLibDir(atomic atomic_static_lib)
+    staticLibDir(gcc gcc_static_lib)
+    set(ANDROID_ATOMIC_STATIC_LIBRARIES ${atomic_static_lib})
+    set(ANDROID_GCC_STATIC_LIBRARIES ${gcc_static_lib})
+else()
+    set(ANDROID_ATOMIC_STATIC_LIBRARIES
+            ${ANDROID_TOOLCHAIN_ROOT}/${ANDROID_TOOLCHAIN_NAME}/${ANDROID_LIBDIR_NAME}/libatomic.a)
+    set(ANDROID_GCC_STATIC_LIBRARIES
+            ${ANDROID_TOOLCHAIN_ROOT}/lib/gcc/${ANDROID_TOOLCHAIN_NAME}/4.9/libgcc.a)
 endif()
-set(ANDROID_ATOMIC_STATIC_LIBRARIES ${atomic_static_lib})
-set(ANDROID_GCC_STATIC_LIBRARIES ${gcc_static_lib})
+
 set(ANDROID_NEED_SHARED_LIBRARIES -lc++ -lc -lm -ldl)
 set(ANDROID_GLOBAL_LDFLAGS
         -Wl,-z,noexecstack
