@@ -20,7 +20,7 @@ For Android.bp:
 May later use `soong` to solve these problems.
 
 ## Test Environment
-- Android N/O/P source tree
+- Android N/O/P/Q source tree
 - Ubuntu 16.04
 - Windows 10 && Android NDK R21
 - Clion 2019.3.2
@@ -48,8 +48,10 @@ android-cmake-project/CMakeModule/android.env.cmake
 | ----------------------- | --------- | ----------- |
 |  TARGET_BOARD_HARDWARE  |  string   | Fill in the string you got through `get_build_var` |
 |  ANDROID_LUNCH          |  string   | Your own android `lunch` target    |
-|  ANDROID_SDK_VERSION    |  string   | 19-28...    |
-|  ANDROID_TARGET_ARCH    | arm/arm64 | lunch target `arch`    |
+|  ANDROID_SDK_VERSION    |  string   | 19-29...    |
+|  ANDROID_TARGET_ARCH    | arm/arm64 | lunch target `arch`, form `TARGET_ARCH` |
+|  ANDROID_ARCH_VARIANT   |  string   | armv7-a,armv8-a,... form `TARGET_ARCH_VARIANT` |
+|  ANDROID_CPU_VARIANT    |  string   | cortex-a53,... form `TARGET_CPU_VARIANT` |
 |  ANDROID_ABI            | arm64-v8a/armeabi-v7a | Compile to generate binary abi |
 |  ANDROID_NDK            | path      | android ndk path |
 |  ANDROID_CLANG_VERSION  | string    | clang-4691093(Android p) |

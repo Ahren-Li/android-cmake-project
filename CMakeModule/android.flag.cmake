@@ -131,7 +131,16 @@ if(ANDROID_SYSROOT_ABI STREQUAL arm64)
 else()
     set(ANDROID_LINKER /system/bin/linker)
 endif()
-set(ANDROID_GLOBAL_LD_DIRS ${ANDROID_TARGET_OUT_DIR}/${ANDROID_OBJ_DIR}/lib)
+if(${ANDROID_SDK_VERSION} GREATER_EQUAL 29)
+    set(ANDROID_GLOBAL_LD_DIRS
+            ${ANDROID_TARGET_OUT_DIR}/symbols/system/${ANDROID_LIBDIR_NAME}
+            ${ANDROID_TARGET_OUT_DIR}/symbols/system/${ANDROID_LIBDIR_NAME}/bootstrap
+            ${ANDROID_TARGET_OUT_DIR}/symbols/vendor/${ANDROID_LIBDIR_NAME}
+            )
+else()
+    set(ANDROID_GLOBAL_LD_DIRS ${ANDROID_TARGET_OUT_DIR}/${ANDROID_OBJ_DIR}/lib)
+endif()
+
 set(ANDROID_GLOBAL_EXE_LINK_FLAGS
         -pie
         -nostdlib
@@ -139,21 +148,39 @@ set(ANDROID_GLOBAL_EXE_LINK_FLAGS
         -Wl,-dynamic-linker,${ANDROID_LINKER}
         -Wl,--gc-sections
         -Wl,-z,nocopyreloc
-        -Wl,-rpath-link=${ANDROID_GLOBAL_LD_DIRS}
-        -L${ANDROID_GLOBAL_LD_DIRS}
         )
+
 set(ANDROID_GLOBAL_SHARED_LINK_FLAGS
         -shared -nostdlib -Wl,--gc-sections
-        -Wl,-rpath-link=${ANDROID_GLOBAL_LD_DIRS}
-        -L${ANDROID_GLOBAL_LD_DIRS}
         )
-set(ANDROID_CRTBEGIN_DYNAMIC_O ${ANDROID_GLOBAL_LD_DIRS}/crtbegin_dynamic.o)
-set(ANDROID_CRTEND_O ${ANDROID_GLOBAL_LD_DIRS}/crtend_android.o)
-set(ANDROID_CRTBEGIN_SO ${ANDROID_GLOBAL_LD_DIRS}/crtbegin_so.o)
-set(ANDROID_CRTEND_SO ${ANDROID_GLOBAL_LD_DIRS}/crtend_so.o)
 
-staticLibDir(compiler_rt-extras compiler_rt_static_lib)
-set(ANDROID_NEED_STATIC_LIBRARIES ${compiler_rt_static_lib})
+foreach(dir ${ANDROID_GLOBAL_LD_DIRS})
+    list(APPEND ANDROID_GLOBAL_EXE_LINK_FLAGS
+            -Wl,-rpath-link=${dir}
+            -L${dir})
+    list(APPEND ANDROID_GLOBAL_SHARED_LINK_FLAGS
+            -Wl,-rpath-link=${dir}
+            -L${dir})
+endforeach()
+
+if(${ANDROID_SDK_VERSION} GREATER_EQUAL 29)
+    android_get_soong_intermediates_dir("bionic/libc" "crtbegin_dynamic" ANDROID_SOONG_CRTBEGIN)
+    set(ANDROID_CRTBEGIN_DYNAMIC_O ${ANDROID_SOONG_CRTBEGIN}/crtbegin_dynamic.o)
+    android_get_soong_intermediates_dir("bionic/libc" "crtbegin_so" ANDROID_SOONG_CRTBEGIN_SO_PATH)
+    set(ANDROID_CRTBEGIN_SO ${ANDROID_SOONG_CRTBEGIN_SO_PATH}/crtbegin_so.o)
+    android_get_soong_intermediates_obj_dir("bionic/libc" "crtend_android" "bionic" ANDROID_SOONG_CRTEND_PATH)
+    set(ANDROID_CRTEND_O ${ANDROID_SOONG_CRTEND_PATH}/crtend.o)
+    android_get_soong_intermediates_obj_dir("bionic/libc" "crtend_so" "bionic" ANDROID_SOONG_CRTEND_SO_PATH)
+    set(ANDROID_CRTEND_SO ${ANDROID_SOONG_CRTEND_SO_PATH}/crtend_so.o)
+else()
+    set(ANDROID_CRTBEGIN_DYNAMIC_O ${ANDROID_GLOBAL_LD_DIRS}/crtbegin_dynamic.o)
+    set(ANDROID_CRTEND_O ${ANDROID_GLOBAL_LD_DIRS}/crtend_android.o)
+    set(ANDROID_CRTBEGIN_SO ${ANDROID_GLOBAL_LD_DIRS}/crtbegin_so.o)
+    set(ANDROID_CRTEND_SO ${ANDROID_GLOBAL_LD_DIRS}/crtend_so.o)
+    staticLibDir(compiler_rt-extras compiler_rt_static_lib)
+    set(ANDROID_NEED_STATIC_LIBRARIES ${compiler_rt_static_lib})
+endif()
+
 
 if(${ANDROID_SDK_VERSION} GREATER_EQUAL 27)
     if(${ANDROID_SDK_VERSION} GREATER_EQUAL 28)

@@ -28,3 +28,22 @@ function(android_target_link_shared_libraries target ...)
         target_link_libraries(${target} PRIVATE ${name})
     endforeach()
 endfunction()
+
+function(android_get_soong_intermediates_dir_namespace dir name namespace out)
+    set(${out} ${PROJECT_DIR}/out/soong/.intermediates/${dir}/${name}/android_${ANDROID_TARGET_ARCH}_${ANDROID_ARCH_VARIANT}_${ANDROID_CPU_VARIANT}_${namespace} PARENT_SCOPE)
+endfunction()
+
+function(android_get_soong_intermediates_dir dir name out)
+    android_get_soong_intermediates_dir_namespace(${dir} ${name} "core" dir_tmp_out)
+    set(${out} ${dir_tmp_out} PARENT_SCOPE)
+endfunction()
+
+function(android_get_soong_intermediates_obj_dir_namespace dir name obj namespace out)
+    android_get_soong_intermediates_dir_namespace(${dir} ${name} ${namespace} tmp_out)
+    set(${out} ${tmp_out}/obj/${dir}/arch-common/${obj} PARENT_SCOPE)
+endfunction()
+
+function(android_get_soong_intermediates_obj_dir dir name obj out)
+    android_get_soong_intermediates_obj_dir_namespace(${dir} ${name} ${obj} "core" obj_tmp_out)
+    set(${out} ${obj_tmp_out} PARENT_SCOPE)
+endfunction()
